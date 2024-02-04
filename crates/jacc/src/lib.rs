@@ -6,6 +6,10 @@
 //   returns a value tagged with `JS_TAG_FUNCTION_BYTECODE`. It also returns the
 //   bytecode instead of evaluating the function inline.
 //
+//   Note that when writing the final bytecode object, `JS_TAG_FUNCTION_BYTECOE`
+//   gets transformed to `BC_TAG_FUNCTION_BYTECODE`, which is what gets used
+//   when reading the bytedode (see below).
+//
 // * After gathering the bytecode, we use `JS_ReadObject` to read the bytecode as `JSValue`.
 //   The sequence (incomplete at least right now), is:
 //   * `JS_ReadObjectAtoms`

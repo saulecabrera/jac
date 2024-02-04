@@ -4,10 +4,6 @@ pub enum Payload {
 }
 
 /// The current position of the parser.
-///
-///
-///
-///
 #[derive(Default)]
 pub struct Offset(u64);
 
