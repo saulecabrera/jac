@@ -19,6 +19,15 @@ use quickpars::{Parser, Payload};
 //   * `JS_ReadObjectRec`
 //   * `JS_ReadFunctionTag` (setup locals, etc)
 //      * `JS_ReadFunctionBytecode` (setup more atoms?)
+//
+// * After having "instantiated" the bytecode. We can evaluate a particular
+// function by:
+//    * using `JS_Eval`, and then `JS_EvalThis` and finally `JS_EvalInternal`,
+//      which ends up in `__JS_EvalInternal`
+//    * Those functions read flags, and sets things up and then
+//    `JS_EvalFunctionInternal` gets evaluated.
+//    * Finally `JS_CallInternal` does the bulk of the work.
+//
 
 // For the compiler to cooperate with the runtime, multiple things need to
 // happen:
@@ -37,7 +46,20 @@ use quickpars::{Parser, Payload};
 /// Main entry point to compile QuickJS bytecode ahead-of-time to WebAssembly.
 pub fn compile(bytes: &[u8]) -> Result<Vec<u8>> {
     for payload in Parser::new().parse_buffer(bytes) {
-        dbg!(payload?);
+        match payload? {
+            f @ Payload::Function(section) => {
+                dbg!(&f);
+                let mut op_reader = section.operators_reader();
+                while !op_reader.done() {
+                    let op = op_reader.read()?;
+                    dbg!(op);
+                }
+            }
+
+            p => {
+                dbg!(p);
+            }
+        }
     }
 
     Ok(vec![])
