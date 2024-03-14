@@ -52,6 +52,12 @@ impl<'a> BinaryReader<'a> {
         Ok(u16::from_le_bytes(slice.try_into()?))
     }
 
+    /// Reads four bytes into a `u32`.
+    pub fn read_u32(&mut self) -> Result<u32> {
+        let slice = self.read(4)?;
+        Ok(u32::from_le_bytes(slice.try_into()?))
+    }
+
     /// Reads 8 bytes into a `u64`.
     pub fn read_u64(&mut self) -> Result<u64> {
         let slice = self.read(8)?;

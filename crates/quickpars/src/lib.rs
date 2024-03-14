@@ -3,6 +3,7 @@
 use anyhow::{anyhow, Context, Result};
 
 mod bc;
+mod op;
 mod readers;
 mod sections;
 use bc::{flag, validate_version, Tag};
@@ -139,7 +140,7 @@ impl Parser {
             Tag::FunctionBytecode => {
                 let flags = reader.read_u16()?;
                 // JS mode.
-                // Unsure what this is for.
+                // Are we in `strict` mode?.
                 reader.read_u8()?;
                 let name_index = reader.read_leb128()?;
                 let arg_count = reader.read_leb128()?;
