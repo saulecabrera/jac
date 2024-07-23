@@ -182,7 +182,7 @@ pub enum Opcode {
     SetNameComputed,
     SetProto,
     SetHomeObject,
-    DefineArray,
+    DefineArrayEl,
     Append,
     CopyDataProperties {
         mask: u8,
@@ -241,6 +241,9 @@ pub enum Opcode {
     PutLocCheckInit {
         index: u16,
     },
+    GetLocCheckThis {
+        index: u16,
+    },
     GetVarRefCheck {
         index: u16,
     },
@@ -269,6 +272,7 @@ pub enum Opcode {
         diff: u32,
     },
     Ret,
+    NipCatch,
     ToObject,
     ToPropKey,
     ToPropKey2,
@@ -302,6 +306,21 @@ pub enum Opcode {
         diff: u32,
         is_with: u8,
     },
+    MakeLocRef {
+        atom: u32,
+        idx: u16,
+    },
+    MakeArgRef {
+        atom: u32,
+        idx: u16,
+    },
+    MakeVarRefRef {
+        atom: u32,
+        idx: u16,
+    },
+    MakeVarRef {
+        atom: u32,
+    },
     ForInStart,
     ForOfStart,
     ForAwaitOfStart,
@@ -310,14 +329,13 @@ pub enum Opcode {
         offset: u8,
     },
     IteratorCheckObject,
-    IteratorCheckValueDone,
+    IteratorGetValueDone,
     IteratorClose,
-    IteratorCloseReturn,
     IteratorNext,
     IteratorCall {
         flags: u8,
     },
-    IteratorYield,
+    InitialYield,
     Yield,
     YieldStar,
     AsyncYieldStar,
@@ -367,9 +385,11 @@ pub enum Opcode {
     Xor,
     Or,
     UndefOrNull,
+    PrivateIn,
     MulPow10,
     MathMod,
     // Short opcodes.
+    Nop,
     PushMinus1,
     Push0,
     Push1,

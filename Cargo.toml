@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/quickpars", "crates/jacc"]
+members = ["crates/quickpars", "crates/jacc", "crates/parsetrace"]
 
 resolver = "2"
 
@@ -10,7 +10,7 @@ edition = "2021"
 license = "Apache-2.0 WITH LLVM-exception"
 
 [workspace.dependencies]
-anyhow = "1.0"
+anyhow = "1.0.86"
 smallvec = "1.13.1"
 
 [profile.release]

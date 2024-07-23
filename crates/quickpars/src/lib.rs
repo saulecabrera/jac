@@ -2,6 +2,7 @@
 
 use anyhow::{anyhow, Context, Result};
 
+mod atom;
 mod bc;
 mod op;
 mod readers;
@@ -178,10 +179,19 @@ impl Parser {
                 let debug_info = if debug != 0 {
                     let filename = reader.read_leb128()?;
                     let lineno = reader.read_leb128()?;
-                    let len = reader.read_leb128()?;
+                    let line_debug_len = reader.read_leb128()?;
+                    let line_buffer = slice(reader, line_debug_len as usize)?;
 
-                    let buffer = slice(reader, len as usize)?;
-                    Some(DebugInfo::new(filename, lineno, buffer))
+                    let colno = reader.read_leb128()?;
+                    let col_debug_len = reader.read_leb128()?;
+                    let col_buffer = slice(reader, col_debug_len as usize)?;
+                    Some(DebugInfo::new(
+                        filename,
+                        lineno,
+                        colno,
+                        line_buffer,
+                        col_buffer,
+                    ))
                 } else {
                     None
                 };
@@ -266,6 +276,8 @@ impl Parser {
                     Ok(())
                 })
             })
+            // has_tla
+            .and_then(|_| reader.read_u8())
             // Return the reader offset.
             .map(|_| reader.offset)
     }

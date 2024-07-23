@@ -1,0 +1,11 @@
+[package]
+name = "parsetrace"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+smallvec = { workspace = true }
+leb128 = "0.2.5"

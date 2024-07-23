@@ -3,9 +3,9 @@
 use anyhow::{bail, ensure, Result};
 
 // QuickJS manages several flavors of bytecode version, depending on what
-// features the engine is compiled with. For the time being we assume `2`, which
+// features the engine is compiled with. For the time being we assume `67`, which
 // means that the engine is compiled with BIGNUM support.
-pub const VERSION: u8 = 2;
+pub const VERSION: u8 = 67;
 
 /// Bytecode tags.
 ///
@@ -22,8 +22,6 @@ pub enum Tag {
     Object,
     Array,
     BigInt,
-    BigFloat,
-    BigDecimal,
     TemplateObject,
     FunctionBytecode,
     Module,
@@ -33,14 +31,16 @@ pub enum Tag {
     Date,
     ObjectValue,
     ObjectRef,
+    BigFloat,
+    BigDecimal,
 }
 
 impl Tag {
     /// Maps an arbitrary byte to a [Tag].
     pub fn map_byte(byte: u8) -> Result<Tag> {
         Ok(match byte {
-            14 => Tag::FunctionBytecode,
-            15 => Tag::Module,
+            12 => Tag::FunctionBytecode,
+            13 => Tag::Module,
             _ => bail!("Unknown tag: {byte}"),
         })
     }
