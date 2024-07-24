@@ -4,35 +4,75 @@ use crate::{op::Opcode, readers::BinaryReader};
 use anyhow::{bail, Result};
 
 /// The start section of the bytecode.
-#[derive(Debug, Copy, Clone)]
-pub struct HeaderSection<'a> {
+#[derive(Debug, Clone)]
+pub struct HeaderSection {
     /// The number of interned atoms in the bytecode.
     pub atom_count: u32,
-    /// The binary reader
-    reader: BinaryReader<'a>,
+    /// The entire list of atom names accessible to the module, including built-in atoms.
+    pub atoms: Vec<String>,
 }
 
-// TODO
-// Add a way to read the atoms.
-impl<'a> HeaderSection<'a> {
+impl HeaderSection {
     /// Creates a new [HeaderSection].
-    pub(crate) fn new(atom_count: u32, reader: BinaryReader<'a>) -> Self {
-        Self { atom_count, reader }
+    pub(crate) fn new(atom_count: u32, atoms: Vec<String>) -> Self {
+        Self { atom_count, atoms }
     }
 }
-#[derive(Debug, Clone, Copy)]
-pub struct ModuleSection<'a> {
+#[derive(Debug, Clone)]
+pub struct ModuleSection {
     /// The index of the module name.
     name_index: u32,
-    /// The binary reader over the module section.
-    reader: BinaryReader<'a>,
+    /// The names of required modules, as index into the atom table.
+    req_modules: Vec<u32>,
+    /// The list of exports from this module.
+    exports: Vec<ModuleExportEntry>,
+    /// The names of the star export entries, as index into the atom table.
+    star_exports: Vec<u32>,
+    /// The list of imports from this module.
+    imports: Vec<ModuleImportEntry>,
+    /// Whether the module has top-level await.
+    has_tla: u8,
 }
 
-impl<'a> ModuleSection<'a> {
+impl<'a> ModuleSection {
     /// Creates a new [ModuleSection].
-    pub(crate) fn new(name_index: u32, reader: BinaryReader<'a>) -> Self {
-        Self { name_index, reader }
+    pub(crate) fn new(
+        name_index: u32,
+        req_modules: Vec<u32>,
+        exports: Vec<ModuleExportEntry>,
+        star_exports: Vec<u32>,
+        imports: Vec<ModuleImportEntry>,
+        has_tla: u8,
+    ) -> Self {
+        Self {
+            name_index,
+            req_modules,
+            exports,
+            star_exports,
+            imports,
+            has_tla,
+        }
     }
+}
+
+#[derive(Debug, Clone)]
+pub enum ModuleExportEntry {
+    Local {
+        var_idx: u32,
+        export_name_idx: u32,
+    },
+    Indirect {
+        module_idx: u32,
+        local_name_idx: u32,
+        export_name_idx: u32,
+    },
+}
+
+#[derive(Debug, Clone)]
+pub struct ModuleImportEntry {
+    pub var_idx: u32,
+    pub name_idx: u32,
+    pub req_module_idx: u32,
 }
 
 /// Function section metadata.
@@ -58,6 +98,23 @@ pub struct FunctionSectionHeader {
     pub bytecode_len: u32,
     /// The number of locals.
     pub local_count: u32,
+}
+
+/// Closure variable information.
+#[derive(Debug, Default, Copy, Clone)]
+pub struct FunctionClosure {
+    pub name: u32,
+    pub index: u32,
+    pub flags: u8,
+}
+
+/// Function local variable information.
+#[derive(Debug, Default, Copy, Clone)]
+pub struct FunctionLocal {
+    pub name: u32,
+    pub scope_level: u32,
+    pub scope_next: u32,
+    pub flags: u8,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -247,7 +304,9 @@ impl<'a> OperatorReader<'a> {
             73 => PutArrayEl,
             74 => GetSuperValue,
             75 => PutSuperValue,
-            76 => DefineField,
+            76 => DefineField {
+                atom: self.reader.read_u32()?,
+            },
             77 => SetName {
                 atom: self.reader.read_u32()?,
             },
@@ -564,7 +623,6 @@ impl<'a> OperatorReader<'a> {
             247 => TypeOfIsFunction,
             x => bail!("Unsupported opcode {x}"),
         };
-
         Ok(op)
     }
 
@@ -575,14 +633,20 @@ impl<'a> OperatorReader<'a> {
 }
 
 /// A function section.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct FunctionSection<'a> {
     /// The function section header.
     header: FunctionSectionHeader,
+    /// The parsed local variables.
+    locals: Vec<FunctionLocal>,
     /// The locals reader.
     locals_reader: BinaryReader<'a>,
+    /// The parsed closures.
+    closures: Vec<FunctionClosure>,
     /// The closures reader.
     closures_reader: BinaryReader<'a>,
+    /// The parsed opcodes.
+    operators: Vec<Opcode>,
     /// The operators reader.
     operators_reader: BinaryReader<'a>,
     /// The function debug information.
@@ -593,15 +657,27 @@ impl<'a> FunctionSection<'a> {
     /// Create a new [FunctionSection].
     pub(crate) fn new(
         header: FunctionSectionHeader,
+        locals: Vec<FunctionLocal>,
         locals_reader: BinaryReader<'a>,
+        closures: Vec<FunctionClosure>,
         closures_reader: BinaryReader<'a>,
         operators_reader: BinaryReader<'a>,
         debug: Option<DebugInfo<'a>>,
     ) -> Self {
+        let mut operators = vec![];
+        let mut op_reader = OperatorReader::new(operators_reader);
+        while !op_reader.done() {
+            if let Ok(op) = op_reader.read() {
+                operators.push(op);
+            }
+        }
         Self {
             header,
+            locals,
             locals_reader,
+            closures,
             closures_reader,
+            operators,
             operators_reader,
             debug,
         }

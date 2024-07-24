@@ -28,6 +28,10 @@ impl<'a> BinaryReader<'a> {
         self.data
     }
 
+    pub fn done(&self) -> bool {
+        self.offset >= self.data.len()
+    }
+
     /// Reads the requested amount of bytes, returning a slice of the bytes.
     fn read(&mut self, bytes: usize) -> Result<&'a [u8]> {
         self.ensure(bytes).and_then(|_| {
@@ -62,6 +66,11 @@ impl<'a> BinaryReader<'a> {
     pub fn read_u64(&mut self) -> Result<u64> {
         let slice = self.read(8)?;
         Ok(u64::from_le_bytes(slice.try_into()?))
+    }
+
+    /// Reads a single atom.
+    pub fn read_atom(&mut self) -> Result<u32> {
+        Ok(self.read_leb128()? >> 1)
     }
 
     /// Reads an integer in LEB-128 format.

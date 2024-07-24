@@ -1,5 +1,5 @@
 /// A QuickJS operator code.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Opcode {
     /// A marker, never emitted.
     Invalid,
@@ -175,7 +175,9 @@ pub enum Opcode {
     PutArrayEl,
     GetSuperValue,
     PutSuperValue,
-    DefineField,
+    DefineField {
+        atom: u32,
+    },
     SetName {
         atom: u32,
     },

@@ -1,23 +1,32 @@
 //! QuickJS Bytecode Parser written in Rust.
 
+use core::str;
+use std::{error, thread::LocalKey};
+
 use anyhow::{anyhow, Context, Result};
 
 mod atom;
 mod bc;
+mod consts;
 mod op;
 mod readers;
 mod sections;
+use atom::ATOM_NAMES;
 use bc::{flag, validate_version, Tag};
 
+use consts::JS_EXPORT_TYPE_LOCAL;
 use readers::{read_str_bytes, slice, BinaryReader};
-use sections::{DebugInfo, FunctionSection, FunctionSectionHeader, HeaderSection, ModuleSection};
+use sections::{
+    DebugInfo, FunctionClosure, FunctionLocal, FunctionSection, FunctionSectionHeader,
+    HeaderSection, ModuleExportEntry, ModuleImportEntry, ModuleSection,
+};
 
 /// Known payload in the bytecode.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub enum Payload<'a> {
     Version(u8),
-    Header(HeaderSection<'a>),
-    Module(ModuleSection<'a>),
+    Header(HeaderSection),
+    Module(ModuleSection),
     Function(FunctionSection<'a>),
     End,
 }
@@ -105,11 +114,14 @@ impl Parser {
 
             ParserState::Header => {
                 let atom_count = reader.read_leb128()?;
-                self.compute_atoms_size(atom_count, &data[reader.offset..])
-                    .and_then(|size| slice(reader, size))
-                    .map(|section_reader| {
+                self.compute_atoms_with_size(atom_count, &data[reader.offset..])
+                    .and_then(|(atoms, size)| {
+                        reader.skip(size)?;
+                        Ok(atoms)
+                    })
+                    .map(|atoms| {
                         self.state = ParserState::Tags;
-                        Header(HeaderSection::new(atom_count, section_reader))
+                        Header(HeaderSection::new(atom_count, atoms))
                     })
             }
             ParserState::Tags => reader
@@ -131,19 +143,21 @@ impl Parser {
         use Payload::*;
 
         let data = reader.data();
-        match tag {
+        let payload = match tag {
             Tag::Module => {
-                let name_index = reader.read_leb128()?;
-                self.compute_module_section_size(&data[reader.offset..])
-                    .and_then(|size| slice(reader, size))
-                    .map(|section_reader| Module(ModuleSection::new(name_index, section_reader)))
+                // The index of the atom array containing the module name.
+                let name_index = reader.read_atom()?;
+                let (module, size) =
+                    self.compute_module_section_with_size(&data[reader.offset..], name_index)?;
+                reader.skip(size)?;
+                Ok(Module(module))
             }
             Tag::FunctionBytecode => {
                 let flags = reader.read_u16()?;
                 // JS mode.
                 // Are we in `strict` mode?.
                 reader.read_u8()?;
-                let name_index = reader.read_leb128()?;
+                let name_index = reader.read_atom()?;
                 let arg_count = reader.read_leb128()?;
                 let var_count = reader.read_leb128()?;
                 let defined_arg_count = reader.read_leb128()?;
@@ -168,16 +182,16 @@ impl Parser {
 
                 let debug = flag::<bool>(flags as u32, 9);
 
-                let locals_reader = self
-                    .compute_locals_size(local_count, &data[reader.offset..])
-                    .and_then(|size| slice(reader, size))?;
-                let closures_reader = self
-                    .compute_closure_size(closure_count, &data[reader.offset..])
-                    .and_then(|size| slice(reader, size))?;
+                let (locals, locals_reader) = self
+                    .compute_locals_with_size(local_count, &data[reader.offset..])
+                    .and_then(|(locals, size)| Ok((locals, slice(reader, size)?)))?;
+                let (closures, closures_reader) = self
+                    .compute_closure_with_size(closure_count, &data[reader.offset..])
+                    .and_then(|(closures, size)| Ok((closures, slice(reader, size)?)))?;
                 let operators_reader = slice(reader, bytecode_len as usize)?;
 
                 let debug_info = if debug != 0 {
-                    let filename = reader.read_leb128()?;
+                    let filename = reader.read_atom()?;
                     let lineno = reader.read_leb128()?;
                     let line_debug_len = reader.read_leb128()?;
                     let line_buffer = slice(reader, line_debug_len as usize)?;
@@ -196,129 +210,172 @@ impl Parser {
                     None
                 };
 
-                // Constants contain other bytecode functions.
-                if constant_pool_size == 0 {
-                    self.state = ParserState::End;
-                }
-
                 Ok(Function(FunctionSection::new(
                     header,
+                    locals,
                     locals_reader,
+                    closures,
                     closures_reader,
                     operators_reader,
                     debug_info,
                 )))
             }
             x => Err(anyhow!("Unsupported {x:?}")),
+        };
+        if reader.done() {
+            self.state = ParserState::End;
         }
+        payload
     }
 
-    /// Calculates the amount of bytes used for the interned atoms.
-    fn compute_atoms_size(&self, atom_count: u32, data: &[u8]) -> Result<usize> {
+    /// Returns the interned atoms, and the size of the data consumed.
+    fn compute_atoms_with_size(
+        &self,
+        atom_count: u32,
+        data: &[u8],
+    ) -> Result<(Vec<String>, usize)> {
         // Create a fresh new reader to make sure that we have the right information
         // regarding the bytes consumed.
         let mut reader = BinaryReader::with_initial_offset(data, self.offset);
+        let mut atoms = ATOM_NAMES
+            .into_iter()
+            .map(str::to_string)
+            .collect::<Vec<_>>();
         (0..atom_count)
             .try_for_each(|_| {
-                read_str_bytes(&mut reader)?;
+                atoms.push(str::from_utf8(read_str_bytes(&mut reader)?)?.to_string());
                 Ok(())
             })
-            .map(|_| reader.offset)
+            .map(|_| (atoms, reader.offset))
     }
 
-    /// Computes the amount of bytes needed to encode the module section.
-    fn compute_module_section_size(&self, data: &[u8]) -> Result<usize> {
+    /// Returns the content of the module section.
+    fn compute_module_section_with_size(
+        &self,
+        data: &[u8],
+        name_index: u32,
+    ) -> Result<(ModuleSection, usize)> {
         let mut reader = BinaryReader::with_initial_offset(data, self.offset);
-        reader
+        let mut req_modules = vec![];
+        let mut exports = vec![];
+        let mut star_exports = vec![];
+        let mut imports = vec![];
+        let has_tla = reader
             // Req module entries count.
             .read_leb128()
             // Each dependency.
-            .and_then(|deps| self.readn_leb128(deps as usize, &mut reader))
+            .and_then(|deps| {
+                (0..deps).try_for_each(|_| {
+                    req_modules.push(reader.read_atom()?);
+                    Ok(())
+                })
+            })
             // Exports count.
             .and_then(|_| reader.read_leb128())
             // Each export.
-            .and_then(|exports| {
-                (0..exports).try_for_each(|_| {
+            .and_then(|count| {
+                (0..count).try_for_each(|_| {
                     let export_type = reader.read_u8()?;
-                    // FIXME: Put in a constant.
-                    // 0 = local export.
-                    // TODO: Verify the following if/else.
-                    if export_type == 0 {
+                    if export_type == JS_EXPORT_TYPE_LOCAL {
                         // The local index of the export.
-                        reader.read_leb128()?;
+                        let var_idx = reader.read_leb128()?;
+                        let export_name_idx = reader.read_atom()?;
+                        exports.push(ModuleExportEntry::Local {
+                            var_idx,
+                            export_name_idx,
+                        });
                     } else {
-                        // The index of the require module.
-                        reader.read_leb128()?;
-                        // The index of the name of the required module.
-                        reader.read_leb128()?;
+                        let module_idx = reader.read_leb128()?;
+                        let local_name_idx = reader.read_atom()?;
+                        let export_name_idx = reader.read_atom()?;
+                        exports.push(ModuleExportEntry::Indirect {
+                            module_idx,
+                            local_name_idx,
+                            export_name_idx,
+                        });
                     }
-                    // The export name.
-                    reader.read_leb128()?;
                     Ok(())
                 })
             })
             // Star exports count.
             .and_then(|_| reader.read_leb128())
             // Each * export
-            .and_then(|star_exports| self.readn_leb128(star_exports as usize, &mut reader))
+            .and_then(|count| {
+                (0..count).try_for_each(|_| {
+                    star_exports.push(reader.read_leb128()?);
+                    Ok(())
+                })
+            })
             // Imports count.
             .and_then(|_| reader.read_leb128())
             // Each import.
             .and_then(|imports_count| {
                 (0..imports_count).try_for_each(|_| {
                     // Variable index.
-                    reader.read_leb128()?;
+                    let var_idx = reader.read_leb128()?;
                     // Import name index;
-                    reader.read_leb128()?;
+                    let name_idx = reader.read_atom()?;
                     // Required module index.
-                    reader.read_leb128()?;
-
+                    let req_module_idx = reader.read_leb128()?;
+                    imports.push(ModuleImportEntry {
+                        var_idx,
+                        name_idx,
+                        req_module_idx,
+                    });
                     Ok(())
                 })
             })
             // has_tla
-            .and_then(|_| reader.read_u8())
-            // Return the reader offset.
-            .map(|_| reader.offset)
+            .and_then(|_| reader.read_u8())?;
+        Ok((
+            ModuleSection::new(
+                name_index,
+                req_modules,
+                exports,
+                star_exports,
+                imports,
+                has_tla,
+            ),
+            reader.offset,
+        ))
     }
 
-    fn compute_locals_size(&self, locals_count: u32, data: &[u8]) -> Result<usize> {
+    fn compute_locals_with_size(
+        &self,
+        locals_count: u32,
+        data: &[u8],
+    ) -> Result<(Vec<FunctionLocal>, usize)> {
         let mut reader = BinaryReader::with_initial_offset(data, self.offset);
+        let mut locals = vec![];
         (0..locals_count)
             .try_for_each(|_| {
-                // Var name.
-                reader.read_leb128()?;
-                // Scope level.
-                reader.read_leb128()?;
-                // Scope next.
-                reader.read_leb128()?;
-                // Flags.
-                reader.read_u8()?;
+                locals.push(FunctionLocal {
+                    name: reader.read_atom()?,
+                    scope_level: reader.read_leb128()?,
+                    scope_next: reader.read_leb128()?,
+                    flags: reader.read_u8()?,
+                });
                 Ok(())
             })
-            .map(|_| reader.offset)
+            .map(|_| (locals, reader.offset))
     }
 
-    fn compute_closure_size(&self, closure_count: u32, data: &[u8]) -> Result<usize> {
+    fn compute_closure_with_size(
+        &self,
+        closure_count: u32,
+        data: &[u8],
+    ) -> Result<(Vec<FunctionClosure>, usize)> {
         let mut reader = BinaryReader::with_initial_offset(data, self.offset);
+        let mut closures = vec![];
         (0..closure_count)
             .try_for_each(|_| {
-                // Var name.
-                reader.read_leb128()?;
-                // Index.
-                reader.read_leb128()?;
-                // Flags.
-                reader.read_u8()?;
+                closures.push(FunctionClosure {
+                    name: reader.read_atom()?,
+                    index: reader.read_leb128()?,
+                    flags: reader.read_u8()?,
+                });
                 Ok(())
             })
-            .map(|_| reader.offset)
-    }
-
-    /// Reads `n` leb128 encodings.
-    fn readn_leb128(&self, n: usize, reader: &mut BinaryReader<'_>) -> Result<()> {
-        (0..n).try_for_each(|_| {
-            reader.read_leb128()?;
-            Ok(())
-        })
+            .map(|_| (closures, reader.offset))
     }
 }
