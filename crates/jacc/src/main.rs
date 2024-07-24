@@ -80,5 +80,4 @@ run_default(run);
     let runtime = Runtime::new(config).unwrap();
     let results = runtime.compile_to_bytecode("functio.mjs", js_source1);
     jacc::compile(&results.unwrap()).unwrap();
-    println!("Hello, world!");
 }
