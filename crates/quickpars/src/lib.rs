@@ -1,7 +1,6 @@
 //! QuickJS Bytecode Parser written in Rust.
 
 use core::str;
-use std::{error, thread::LocalKey};
 
 use anyhow::{anyhow, Context, Result};
 
@@ -63,7 +62,7 @@ impl Parser {
 
 impl Parser {
     /// Parse the entire bytecode buffer.
-    pub fn parse_buffer<'a>(self, data: &'a [u8]) -> impl Iterator<Item = Result<Payload<'a>>> {
+    pub fn parse_buffer(self, data: &[u8]) -> impl Iterator<Item = Result<Payload<'_>>> {
         let mut parser = self;
         std::iter::from_fn(move || {
             if parser.done {
@@ -107,9 +106,9 @@ impl Parser {
                 .read_u8()
                 .and_then(validate_version)
                 .map(Version)
-                .and_then(|v| {
+                .map(|v| {
                     self.state = ParserState::Header;
-                    Ok(v)
+                    v
                 }),
 
             ParserState::Header => {

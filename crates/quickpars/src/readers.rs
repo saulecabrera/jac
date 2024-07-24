@@ -34,10 +34,10 @@ impl<'a> BinaryReader<'a> {
 
     /// Reads the requested amount of bytes, returning a slice of the bytes.
     fn read(&mut self, bytes: usize) -> Result<&'a [u8]> {
-        self.ensure(bytes).and_then(|_| {
+        self.ensure(bytes).map(|_| {
             let start = self.offset;
-            self.offset = self.offset + bytes;
-            Ok(&self.data[start..self.offset])
+            self.offset += bytes;
+            &self.data[start..self.offset]
         })
     }
 
@@ -79,7 +79,7 @@ impl<'a> BinaryReader<'a> {
         let val = leb128::read::unsigned(&mut cursor)?;
         let bytes_read = cursor.position();
 
-        self.offset = self.offset + bytes_read as usize;
+        self.offset += bytes_read as usize;
 
         Ok(u32::try_from(val)?)
     }
@@ -90,16 +90,16 @@ impl<'a> BinaryReader<'a> {
         let val = leb128::read::signed(&mut cursor)?;
         let bytes_read = cursor.position();
 
-        self.offset = self.offset + bytes_read as usize;
+        self.offset += bytes_read as usize;
 
         Ok(i32::try_from(val)?)
     }
 
     /// Skips the specified number of bytes.
     pub fn skip(&mut self, bytes: usize) -> Result<()> {
-        self.ensure(bytes).and_then(|_| {
-            self.offset = self.offset + bytes;
-            Ok(())
+        self.ensure(bytes).map(|_| {
+            self.offset += bytes;
+            ()
         })
     }
 
@@ -132,7 +132,7 @@ pub(crate) fn read_str_bytes<'a>(reader: &mut BinaryReader<'a>) -> Result<&'a [u
     // Once we have read the `wide_char` bit, we clear it out.
     len >>= 1;
     let size = (len << is_wide_char) as usize;
-    let res = &reader.data()[reader.offset..(reader.offset + (size as usize))];
+    let res = &reader.data()[reader.offset..(reader.offset + size)];
     reader.skip(size)?;
 
     Ok(res)

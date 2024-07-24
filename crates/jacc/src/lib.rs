@@ -47,7 +47,7 @@ use quickpars::{Parser, Payload};
 pub fn compile(bytes: &[u8]) -> Result<Vec<u8>> {
     for payload in Parser::new().parse_buffer(bytes) {
         match payload? {
-            ref f @ Payload::Function(ref section) => {
+            ref f @ Payload::Function(_) => {
                 dbg!(&f);
             }
 

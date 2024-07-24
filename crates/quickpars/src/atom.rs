@@ -1,4 +1,8 @@
-pub const ATOM_NAMES: [&str; 226] = [
+// built-in atom definitions in the quickjs engine.
+// See https://github.com/bellard/quickjs/blob/36911f0d3ab1a4c190a4d5cbe7c2db225a455389/quickjs-atom.h
+// and https://github.com/DelSkayn/rquickjs/blob/master/sys/patches/error_column_number.patch#L54
+pub const ATOM_NAMES: [&str; 228] = [
+    "JS_ATOM_NULL", // default name for lambda functions
     "null",
     "false",
     "true",
@@ -49,6 +53,7 @@ pub const ATOM_NAMES: [&str; 226] = [
     "length",
     "fileName",
     "lineNumber",
+    "columnNumber",
     "message",
     "cause",
     "errors",

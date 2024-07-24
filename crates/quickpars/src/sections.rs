@@ -34,7 +34,7 @@ pub struct ModuleSection {
     has_tla: u8,
 }
 
-impl<'a> ModuleSection {
+impl ModuleSection {
     /// Creates a new [ModuleSection].
     pub(crate) fn new(
         name_index: u32,
@@ -409,7 +409,7 @@ impl<'a> OperatorReader<'a> {
             113 => ToObject,
             114 => ToPropKey,
             115 => ToPropKey2,
-            116 | 117 | 118 | 119 | 120 | 121 => {
+            116..=121 => {
                 let atom = self.reader.read_u32()?;
                 let diff = self.reader.read_u32()?;
                 let is_with = self.reader.read_u8()?;

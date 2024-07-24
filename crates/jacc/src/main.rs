@@ -2,30 +2,31 @@
 use javy::Config;
 use javy::Runtime;
 fn main() {
-    let small = "function a() {return 123;} a();";
-    let js_source1 = "
-var r = /* @__PURE__ */ ((t) => (t[t.Stdin = 0] = \"Stdin\", t[t.Stdout = 1] = \"Stdout\", t[t.Stderr = 2] = \"Stderr\", t))(r || {});
+    let js_source = "var r = /* @__PURE__ */ ((t) => (
+  (t[(t.Stdin = 0)] = \"Stdin\"),
+  (t[(t.Stdout = 1)] = \"Stdout\"),
+  (t[(t.Stderr = 2)] = \"Stderr\"),
+  t
+))(r || {});
 
 // node_modules/javy/dist/fs/index.js
 function o(i) {
-  let r2 = new Uint8Array(1024), e = 0;
-  for (; ; ) {
+  let r2 = new Uint8Array(1024),
+    e = 0;
+  for (;;) {
     const t = Javy.IO.readSync(i, r2.subarray(e));
-    if (t < 0)
-      throw Error(\"Error while reading from file descriptor\");
-    if (t === 0)
-      return r2.subarray(0, e + t);
-    if (e += t, e === r2.length) {
+    if (t < 0) throw Error(\"Error while reading from file descriptor\");
+    if (t === 0) return r2.subarray(0, e + t);
+    if (((e += t), e === r2.length)) {
       const n = new Uint8Array(r2.length * 2);
-      n.set(r2), r2 = n;
+      n.set(r2), (r2 = n);
     }
   }
 }
 function l(i, r2) {
   for (; r2.length > 0; ) {
     const e = Javy.IO.writeSync(i, r2);
-    if (e < 0)
-      throw Error(\"Error while writing to file descriptor\");
+    if (e < 0) throw Error(\"Error while writing to file descriptor\");
     if (e === 0)
       throw Error(\"Could not write all contents in buffer to file descriptor\");
     r2 = r2.subarray(e);
@@ -45,13 +46,16 @@ function run_default(userfunction) {
 
 // extensions/delivery-customization/src/run.ts
 function run(input) {
-  let operations = input.cart.deliveryGroups.filter((group) => {
-    return group.deliveryOptions.length > 1;
-  }).map((group) => {
-    return moveFirstDeliveryOptionToLastPosition(group);
-  }).filter((operation) => {
-    return operation !== null;
-  });
+  let operations = input.cart.deliveryGroups
+    .filter((group) => {
+      return group.deliveryOptions.length > 1;
+    })
+    .map((group) => {
+      return moveFirstDeliveryOptionToLastPosition(group);
+    })
+    .filter((operation) => {
+      return operation !== null;
+    });
   return { operations };
 }
 function moveFirstDeliveryOptionToLastPosition(group) {
@@ -60,24 +64,24 @@ function moveFirstDeliveryOptionToLastPosition(group) {
   if (group == void 0) {
     return null;
   }
-  ;
   firstHandle = group.deliveryOptions[0]?.handle;
   if (firstHandle == null) {
     return null;
   }
-  ;
   lastHandleIndex = group.deliveryOptions.length - 1;
-  return { move: {
-    deliveryOptionHandle: firstHandle,
-    index: lastHandleIndex
-  } };
+  return {
+    move: {
+      deliveryOptionHandle: firstHandle,
+      index: lastHandleIndex,
+    },
+  };
 }
 
 run_default(run);
-    ";
+";
     let mut config = Config::default();
 
     let runtime = Runtime::new(config).unwrap();
-    let results = runtime.compile_to_bytecode("functio.mjs", js_source1);
+    let results = runtime.compile_to_bytecode("function.mjs", js_source);
     jacc::compile(&results.unwrap()).unwrap();
 }
