@@ -47,13 +47,8 @@ use quickpars::{Parser, Payload};
 pub fn compile(bytes: &[u8]) -> Result<Vec<u8>> {
     for payload in Parser::new().parse_buffer(bytes) {
         match payload? {
-            f @ Payload::Function(section) => {
+            ref f @ Payload::Function(_) => {
                 dbg!(&f);
-                let mut op_reader = section.operators_reader();
-                while !op_reader.done() {
-                    let op = op_reader.read()?;
-                    dbg!(op);
-                }
             }
 
             p => {
