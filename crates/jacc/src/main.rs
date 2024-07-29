@@ -1,7 +1,24 @@
 #![allow(warnings)]
+use anyhow::Result;
 use javy::Config;
 use javy::Runtime;
-fn main() {
+use parsetrace::ProfileTraceParser;
+use quickpars::Parser;
+use temp_execution_trace::EXECUTION_TRACE;
+mod temp_execution_trace;
+fn main() -> Result<()> {
+    let small = "
+    var A={a:12345678}; 
+    var K={c:123456789}; 
+    function B(d) {
+        function Z() {
+            for (i=0;i<10;i++) {
+                d = d + 1;
+            }
+            return K;
+        }
+        Z();
+    }";
     let js_source = "var r = /* @__PURE__ */ ((t) => (
   (t[(t.Stdin = 0)] = \"Stdin\"),
   (t[(t.Stdout = 1)] = \"Stdout\"),
@@ -80,8 +97,14 @@ function moveFirstDeliveryOptionToLastPosition(group) {
 run_default(run);
 ";
     let mut config = Config::default();
-
     let runtime = Runtime::new(config).unwrap();
-    let results = runtime.compile_to_bytecode("function.mjs", js_source);
-    jacc::compile(&results.unwrap()).unwrap();
+    let results = runtime.compile_to_bytecode("function.mjs", &js_source);
+    let binding = results.unwrap();
+    let trace_parser = ProfileTraceParser::new(EXECUTION_TRACE, binding.as_slice())?;
+    trace_parser.report_trace().map(|trace| {
+        for line in trace {
+            println!("{}", line);
+        }
+    });
+    Ok(())
 }

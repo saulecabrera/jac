@@ -10,17 +10,11 @@ pub struct BinaryReader<'a> {
     data: &'a [u8],
     /// The offset of the binary reader.
     pub offset: usize,
-    /// The initial offset of the binary reader.
-    initial_offset: usize,
 }
 
 impl<'a> BinaryReader<'a> {
-    pub fn with_initial_offset(data: &'a [u8], initial_offset: usize) -> Self {
-        Self {
-            data,
-            initial_offset,
-            offset: 0,
-        }
+    pub fn new(data: &'a [u8]) -> Self {
+        Self { data, offset: 0 }
     }
 
     /// Returns a reference to the underlying data.
@@ -119,7 +113,7 @@ impl<'a> BinaryReader<'a> {
 pub(crate) fn slice<'a>(reader: &mut BinaryReader<'a>, size: usize) -> Result<BinaryReader<'a>> {
     let data = reader.data();
     let slice = &data[reader.offset..(reader.offset + size)];
-    let res = BinaryReader::with_initial_offset(slice, reader.offset);
+    let res = BinaryReader::new(slice);
     reader.skip(size)?;
     Ok(res)
 }
