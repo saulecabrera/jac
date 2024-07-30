@@ -9,4 +9,9 @@ license.workspace = true
 anyhow = { workspace = true }
 smallvec = { workspace = true }
 quickpars = { path = "../quickpars" }
+javy = { git = "https://github.com/bytecodealliance/javy.git" }
 leb128 = "0.2.5"
+
+[[bin]]
+name = "parsetrace"
+path = "src/main.rs"

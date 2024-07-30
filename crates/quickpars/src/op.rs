@@ -1,5 +1,3 @@
-use std::any::type_name;
-
 use crate::{readers::BinaryReader, JsModule};
 use anyhow::{bail, Result};
 
@@ -494,6 +492,7 @@ pub enum Opcode {
 }
 
 impl Opcode {
+    /// reads an opcode, with immediates from a buffer, and returns the parsed opcode object.
     pub fn from_reader(reader: &mut BinaryReader<'_>) -> Result<(u32, Opcode)> {
         use Opcode::*;
         let pc = reader.offset as u32;
@@ -964,6 +963,7 @@ impl Opcode {
         Ok((pc, op))
     }
 
+    /// returns the canonical name of the opcode from byte value, without immediates.
     pub fn name_from_byte(byte: u8) -> String {
         match byte {
             0 => "Invalid",
@@ -1219,7 +1219,7 @@ impl Opcode {
         .to_string()
     }
 
-    /// returns the canonical name of the opcode, using the given js module definitions.
+    /// returns the canonical name of the opcode with immediates, using the given js module definitions.
     pub fn report(&self, pc: u32, fn_idx: u32, js_module: &JsModule) -> String {
         use Opcode::*;
         format!(
@@ -1624,9 +1624,4 @@ impl Opcode {
     pub fn discriminant(&self) -> u8 {
         unsafe { *<*const _>::from(self).cast::<u8>() }
     }
-}
-
-fn variant_name<T>(_: &T) -> &'static str {
-    let full_name = type_name::<T>();
-    full_name.split("::").last().unwrap()
 }
