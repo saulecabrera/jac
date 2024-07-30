@@ -9,8 +9,3 @@ license.workspace = true
 anyhow = { workspace = true }
 quickpars = { path = "../quickpars" }
 parsetrace = { path = "../parsetrace" }
-javy = { git = "https://github.com/bytecodealliance/javy.git" }
-
-[[bin]]
-name = "jacc"
-path = "src/main.rs"
