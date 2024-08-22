@@ -7,6 +7,7 @@ use anyhow::{anyhow, Context, Result};
 mod atom;
 mod bc;
 mod consts;
+mod js_module;
 mod op;
 mod readers;
 mod sections;
@@ -14,7 +15,10 @@ use atom::ATOM_NAMES;
 use bc::{flag, validate_version, Tag};
 
 use consts::JS_EXPORT_TYPE_LOCAL;
+pub use js_module::JsModule;
+pub use op::Opcode;
 use readers::{read_str_bytes, slice, BinaryReader};
+pub use sections::OpcodeList;
 use sections::{
     DebugInfo, FunctionClosure, FunctionLocal, FunctionSection, FunctionSectionHeader,
     HeaderSection, ModuleExportEntry, ModuleImportEntry, ModuleSection,
@@ -61,6 +65,28 @@ impl Parser {
 }
 
 impl Parser {
+    /// Parse the entire bytecode buffer and returns the omplete js module.
+    pub fn parse_buffer_sync(data: &[u8]) -> Result<JsModule<'_>> {
+        let mut header = Err(anyhow!("No header found"));
+        let mut module = Err(anyhow!("No module found"));
+        let mut functions = vec![];
+        for payload in Parser::new().parse_buffer(data) {
+            match payload? {
+                Payload::Header(h) => {
+                    header = Ok(h);
+                }
+                Payload::Module(m) => {
+                    module = Ok(m);
+                }
+                Payload::Function(f) => {
+                    functions.push(f);
+                }
+                _ => {}
+            }
+        }
+        Ok(JsModule::new(header?, module?, functions))
+    }
+
     /// Parse the entire bytecode buffer.
     pub fn parse_buffer(self, data: &[u8]) -> impl Iterator<Item = Result<Payload<'_>>> {
         let mut parser = self;
@@ -75,7 +101,7 @@ impl Parser {
     fn parse<'a>(&mut self, data: &'a [u8]) -> Result<Payload<'a>> {
         // Every time `parse` is called, make sure to update the view of data
         // that we're parsing via `&data[self.offset...]`
-        let mut reader = BinaryReader::with_initial_offset(&data[self.offset..], self.offset);
+        let mut reader = BinaryReader::new(&data[self.offset..]);
         match self.parse_with(&mut reader) {
             Ok(payload) => {
                 self.offset += reader.offset;
@@ -235,7 +261,7 @@ impl Parser {
     ) -> Result<(Vec<String>, usize)> {
         // Create a fresh new reader to make sure that we have the right information
         // regarding the bytes consumed.
-        let mut reader = BinaryReader::with_initial_offset(data, self.offset);
+        let mut reader = BinaryReader::new(data);
         let mut atoms = ATOM_NAMES
             .into_iter()
             .map(str::to_string)
@@ -254,7 +280,7 @@ impl Parser {
         data: &[u8],
         name_index: u32,
     ) -> Result<(ModuleSection, usize)> {
-        let mut reader = BinaryReader::with_initial_offset(data, self.offset);
+        let mut reader = BinaryReader::new(data);
         let mut req_modules = vec![];
         let mut exports = vec![];
         let mut star_exports = vec![];
@@ -344,12 +370,12 @@ impl Parser {
         locals_count: u32,
         data: &[u8],
     ) -> Result<(Vec<FunctionLocal>, usize)> {
-        let mut reader = BinaryReader::with_initial_offset(data, self.offset);
+        let mut reader = BinaryReader::new(data);
         let mut locals = vec![];
         (0..locals_count)
             .try_for_each(|_| {
                 locals.push(FunctionLocal {
-                    name: reader.read_atom()?,
+                    name_index: reader.read_atom()?,
                     scope_level: reader.read_leb128()?,
                     scope_next: reader.read_leb128()?,
                     flags: reader.read_u8()?,
@@ -364,12 +390,12 @@ impl Parser {
         closure_count: u32,
         data: &[u8],
     ) -> Result<(Vec<FunctionClosure>, usize)> {
-        let mut reader = BinaryReader::with_initial_offset(data, self.offset);
+        let mut reader = BinaryReader::new(data);
         let mut closures = vec![];
         (0..closure_count)
             .try_for_each(|_| {
                 closures.push(FunctionClosure {
-                    name: reader.read_atom()?,
+                    name_index: reader.read_atom()?,
                     index: reader.read_leb128()?,
                     flags: reader.read_u8()?,
                 });
