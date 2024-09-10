@@ -26,15 +26,15 @@ pub struct ModuleSection {
     /// The index of the module name.
     pub name_index: u32,
     /// The names of required modules, as index into the atom table.
-    req_modules: Vec<u32>,
+    pub req_modules: Vec<u32>,
     /// The list of exports from this module.
-    exports: Vec<ModuleExportEntry>,
+    pub exports: Vec<ModuleExportEntry>,
     /// The names of the star export entries, as index into the atom table.
-    star_exports: Vec<u32>,
+    pub star_exports: Vec<u32>,
     /// The list of imports from this module.
-    imports: Vec<ModuleImportEntry>,
+    pub imports: Vec<ModuleImportEntry>,
     /// Whether the module has top-level await.
-    has_tla: u8,
+    pub has_tla: u8,
 }
 
 impl ModuleSection {
@@ -122,11 +122,11 @@ pub struct FunctionLocal {
 
 #[derive(Clone, Copy)]
 pub struct DebugInfo<'a> {
-    filename: u32,
-    lineno: u32,
-    colno: u32,
-    line_debug_reader: BinaryReader<'a>,
-    col_debug_reader: BinaryReader<'a>,
+    pub filename: u32,
+    pub lineno: u32,
+    pub colno: u32,
+    pub line_debug_reader: BinaryReader<'a>,
+    pub col_debug_reader: BinaryReader<'a>,
 }
 
 impl<'a> DebugInfo<'a> {
@@ -152,21 +152,21 @@ impl<'a> DebugInfo<'a> {
 #[derive(Clone)]
 pub struct FunctionSection<'a> {
     /// The function section header.
-    header: FunctionSectionHeader,
+    pub header: FunctionSectionHeader,
     /// The parsed local variables.
-    locals: Vec<FunctionLocal>,
+    pub locals: Vec<FunctionLocal>,
     /// The locals reader.
-    locals_reader: BinaryReader<'a>,
+    pub locals_reader: BinaryReader<'a>,
     /// The parsed closures.
-    closures: Vec<FunctionClosure>,
+    pub closures: Vec<FunctionClosure>,
     /// The closures reader.
-    closures_reader: BinaryReader<'a>,
+    pub closures_reader: BinaryReader<'a>,
     /// The parsed opcodes, with their offsets.
-    operators: OpcodeList,
+    pub operators: OpcodeList,
     /// The operators reader.
-    operators_reader: BinaryReader<'a>,
+    pub operators_reader: BinaryReader<'a>,
     /// The function debug information.
-    debug: Option<DebugInfo<'a>>,
+    pub debug: Option<DebugInfo<'a>>,
 }
 
 impl<'a> FunctionSection<'a> {

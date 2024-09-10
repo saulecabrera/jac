@@ -23,6 +23,7 @@ pub enum BytecodeTraceEvent {
         opcode_offset: u32,
         opcode_byte: u8,
         fuel_consumption: u32,
+        #[allow(dead_code)]
         native_calls: Vec<WasmCallFrame>,
     },
     /// Source function start event, trace format is:
@@ -38,6 +39,7 @@ pub enum BytecodeTraceEvent {
     ///
     /// `recovered_func_id,0,00,fuel_consumption,`
     FunctionSetup {
+        #[allow(dead_code)]
         recovered_func_id: u32,
         fuel_consumption: u32,
     },

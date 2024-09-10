@@ -4,25 +4,20 @@ use core::str;
 
 use anyhow::{anyhow, Context, Result};
 
-mod atom;
-mod bc;
-mod consts;
-mod js_module;
-mod op;
-mod readers;
-mod sections;
-use atom::ATOM_NAMES;
-use bc::{flag, validate_version, Tag};
-
-use consts::JS_EXPORT_TYPE_LOCAL;
-pub use js_module::JsModule;
-pub use op::Opcode;
-use readers::{read_str_bytes, slice, BinaryReader};
-pub use sections::OpcodeList;
-use sections::{
-    DebugInfo, FunctionClosure, FunctionLocal, FunctionSection, FunctionSectionHeader,
-    HeaderSection, ModuleExportEntry, ModuleImportEntry, ModuleSection,
-};
+pub mod atom;
+pub use atom::*;
+pub mod bc;
+pub use bc::*;
+pub mod consts;
+pub use consts::*;
+pub mod js_module;
+pub use js_module::*;
+pub mod op;
+pub use op::*;
+pub mod readers;
+pub use readers::*;
+pub mod sections;
+pub use sections::*;
 
 /// Known payload in the bytecode.
 #[derive(Debug, Clone)]

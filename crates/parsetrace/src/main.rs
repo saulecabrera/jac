@@ -1,7 +1,4 @@
-#![allow(warnings)]
 use std::env;
-use std::fmt::Formatter;
-use std::fs;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::PathBuf;
@@ -10,7 +7,6 @@ use anyhow::Result;
 use javy::Config;
 use javy::Runtime;
 use parsetrace::ProfileTraceParser;
-use quickpars::Parser;
 
 /// Entry point to parse a js execution trace running in wasm, and generate a human readable report.
 ///
@@ -31,17 +27,18 @@ fn main() -> Result<()> {
     let js_str = from_file(&js_file_dir)?;
     let trace_str = from_file(&trace_file_dir)?;
 
-    let mut config = Config::default();
+    let config = Config::default();
     let runtime = Runtime::new(config).unwrap();
     let results = runtime.compile_to_bytecode(&js_file_name, &js_str);
     let binding = results.unwrap();
     let trace_parser = ProfileTraceParser::new(&trace_str, binding.as_slice())?;
     let mut trace_out_file = File::create(current_dir.join(out_file_name))?;
-    trace_parser.report_trace().map(|trace| {
+
+    if let Some(trace) = trace_parser.report_trace() {
         for line in trace {
-            writeln!(trace_out_file, "{}", line);
+            writeln!(trace_out_file, "{}", line)?;
         }
-    });
+    }
     Ok(())
 }
 
