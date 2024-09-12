@@ -146,6 +146,6 @@ impl<'a> ProfileTraceParser<'a> {
 
 impl fmt::Debug for ProfileTraceParser<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        self.js_module.fmt_report(f)
+        self.js_module.fmt(f)
     }
 }

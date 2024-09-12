@@ -4,7 +4,7 @@ use std::fmt::Write;
 use crate::sections::{FunctionSection, HeaderSection, ModuleSection};
 
 /// The entire parsed js module from bytecode.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct JsModule<'a> {
     pub header: HeaderSection,
     pub module: ModuleSection,
@@ -70,7 +70,7 @@ impl<'a> JsModule<'a> {
         self.header.atoms.get(atom_idx as usize).map(String::clone)
     }
 
-    // returns the canonicalized offset + operator for a given fn, at the given operator_idx.
+    // Returns the canonicalized offset + operator for a given fn, at the given operator_idx.
     pub fn report_operator(&self, fn_idx: u32, operator_idx: u32) -> Option<String> {
         self.functions
             .get(fn_idx as usize)
@@ -78,7 +78,7 @@ impl<'a> JsModule<'a> {
             .map(|(offset, op)| op.report(*offset, fn_idx, self))
     }
 
-    pub fn fmt_report(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    pub fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(&format!(
             "module_name: {:}\n",
             self.get_atom_name(self.module.name_index)
@@ -89,5 +89,17 @@ impl<'a> JsModule<'a> {
             f.write_char('\n')?;
         }
         Ok(())
+    }
+}
+
+impl<'a> std::fmt::Display for JsModule<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.fmt(f)
+    }
+}
+
+impl<'a> std::fmt::Debug for JsModule<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.fmt(f)
     }
 }

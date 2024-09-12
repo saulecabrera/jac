@@ -45,17 +45,8 @@ use quickpars::{Parser, Payload};
 
 /// Main entry point to compile QuickJS bytecode ahead-of-time to WebAssembly.
 pub fn compile(bytes: &[u8]) -> Result<Vec<u8>> {
-    for payload in Parser::new().parse_buffer(bytes) {
-        match payload? {
-            ref f @ Payload::Function(_) => {
-                dbg!(&f);
-            }
-
-            p => {
-                dbg!(p);
-            }
-        }
-    }
+    let module = Parser::parse_buffer_sync(bytes)?;
+    println!("{:#?}", &module);
 
     Ok(vec![])
 }
