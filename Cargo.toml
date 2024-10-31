@@ -1,5 +1,10 @@
 [workspace]
-members = ["crates/quickpars", "crates/jacc", "crates/parsetrace"]
+members = [
+  "crates/quickpars",
+  "crates/compiler",
+  "crates/parsetrace",
+  "crates/rt"
+]
 
 resolver = "2"
 

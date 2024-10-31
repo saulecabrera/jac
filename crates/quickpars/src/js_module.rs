@@ -57,11 +57,11 @@ impl<'a> JsModule<'a> {
             .unwrap_or(None)
     }
 
-    pub fn get_fn_closure_name(&self, fn_idx: u32, closure_index: u16) -> Option<String> {
+    pub fn get_closure_var_name(&self, fn_idx: u32, closure_var_idx: u16) -> Option<String> {
         self.functions
             .get(fn_idx as usize)
-            .and_then(|f| f.get_closure(closure_index))
-            .map(|closure| self.get_atom_name(closure.name_index))
+            .and_then(|f| f.get_closure_var(closure_var_idx))
+            .map(|closure_var| self.get_atom_name(closure_var.name_index))
             .unwrap_or(None)
     }
 

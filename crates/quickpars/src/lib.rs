@@ -177,12 +177,14 @@ impl Parser {
                 // JS mode.
                 // Are we in `strict` mode?.
                 reader.read_u8()?;
+                // Function name.
                 let name_index = reader.read_atom()?;
+                // Arg count.
                 let arg_count = reader.read_leb128()?;
                 let var_count = reader.read_leb128()?;
                 let defined_arg_count = reader.read_leb128()?;
                 let stack_size = reader.read_leb128()?;
-                let closure_count = reader.read_leb128()?;
+                let closure_var_count = reader.read_leb128()?;
                 let constant_pool_size = reader.read_leb128()?;
                 let bytecode_len = reader.read_leb128()?;
                 let local_count = reader.read_leb128()?;
@@ -194,7 +196,7 @@ impl Parser {
                     var_count,
                     defined_arg_count,
                     stack_size,
-                    closure_count,
+                    closure_var_count,
                     constant_pool_size,
                     bytecode_len,
                     local_count,
@@ -205,8 +207,8 @@ impl Parser {
                 let (locals, locals_reader) = self
                     .compute_locals_with_size(local_count, &data[reader.offset..])
                     .and_then(|(locals, size)| Ok((locals, slice(reader, size)?)))?;
-                let (closures, closures_reader) = self
-                    .compute_closure_with_size(closure_count, &data[reader.offset..])
+                let (closure_vars, closure_vars_reader) = self
+                    .compute_closure_vars_with_size(closure_var_count, &data[reader.offset..])
                     .and_then(|(closures, size)| Ok((closures, slice(reader, size)?)))?;
                 let operators_reader = slice(reader, bytecode_len as usize)?;
 
@@ -234,8 +236,8 @@ impl Parser {
                     header,
                     locals,
                     locals_reader,
-                    closures,
-                    closures_reader,
+                    closure_vars,
+                    closure_vars_reader,
                     operators_reader,
                     debug_info,
                 )))
@@ -380,16 +382,16 @@ impl Parser {
             .map(|_| (locals, reader.offset))
     }
 
-    fn compute_closure_with_size(
+    fn compute_closure_vars_with_size(
         &self,
         closure_count: u32,
         data: &[u8],
-    ) -> Result<(Vec<FunctionClosure>, usize)> {
+    ) -> Result<(Vec<FunctionClosureVar>, usize)> {
         let mut reader = BinaryReader::new(data);
         let mut closures = vec![];
         (0..closure_count)
             .try_for_each(|_| {
-                closures.push(FunctionClosure {
+                closures.push(FunctionClosureVar {
                     name_index: reader.read_atom()?,
                     index: reader.read_leb128()?,
                     flags: reader.read_u8()?,

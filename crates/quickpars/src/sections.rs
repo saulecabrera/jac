@@ -89,12 +89,12 @@ pub struct FunctionSectionHeader {
     pub arg_count: u32,
     /// The variable count.
     pub var_count: u32,
-    /// The{ defined argument count.
+    /// The defined argument count.
     pub defined_arg_count: u32,
     /// The stack size.
     pub stack_size: u32,
-    /// The closure count.
-    pub closure_count: u32,
+    /// List of variables in the closure.
+    pub closure_var_count: u32,
     /// The number of elements in the constant pool.
     pub constant_pool_size: u32,
     /// The function bytecode length.
@@ -105,7 +105,7 @@ pub struct FunctionSectionHeader {
 
 /// Closure variable information.
 #[derive(Debug, Default, Clone)]
-pub struct FunctionClosure {
+pub struct FunctionClosureVar {
     pub name_index: u32,
     pub index: u32,
     pub flags: u8,
@@ -157,10 +157,11 @@ pub struct FunctionSection<'a> {
     pub locals: Vec<FunctionLocal>,
     /// The locals reader.
     pub locals_reader: BinaryReader<'a>,
-    /// The parsed closures.
-    pub closures: Vec<FunctionClosure>,
+    /// The parsed closure vars.
+    /// Variables referenced by the function.
+    pub closure_vars: Vec<FunctionClosureVar>,
     /// The closures reader.
-    pub closures_reader: BinaryReader<'a>,
+    pub closure_vars_reader: BinaryReader<'a>,
     /// The parsed opcodes, with their offsets.
     pub operators: OpcodeList,
     /// The operators reader.
@@ -175,8 +176,8 @@ impl<'a> FunctionSection<'a> {
         header: FunctionSectionHeader,
         locals: Vec<FunctionLocal>,
         locals_reader: BinaryReader<'a>,
-        closures: Vec<FunctionClosure>,
-        closures_reader: BinaryReader<'a>,
+        closure_vars: Vec<FunctionClosureVar>,
+        closure_vars_reader: BinaryReader<'a>,
         mut operators_reader: BinaryReader<'a>,
         debug: Option<DebugInfo<'a>>,
     ) -> Self {
@@ -192,8 +193,8 @@ impl<'a> FunctionSection<'a> {
             header,
             locals,
             locals_reader,
-            closures,
-            closures_reader,
+            closure_vars,
+            closure_vars_reader,
             operators,
             operators_reader,
             debug,
@@ -213,8 +214,8 @@ impl<'a> FunctionSection<'a> {
         self.locals.get(idx as usize)
     }
 
-    pub fn get_closure(&self, idx: u16) -> Option<&FunctionClosure> {
-        self.closures.get(idx as usize)
+    pub fn get_closure_var(&self, idx: u16) -> Option<&FunctionClosureVar> {
+        self.closure_vars.get(idx as usize)
     }
 
     pub fn fmt_report(
@@ -242,7 +243,7 @@ impl<'a> FunctionSection<'a> {
                     .collect::<Vec<_>>(),
             )
             .field(
-                "local_vars",
+                "locals",
                 &self
                     .locals
                     .iter()
@@ -255,9 +256,9 @@ impl<'a> FunctionSection<'a> {
                     .collect::<Vec<_>>(),
             )
             .field(
-                "closures",
+                "closures_vars",
                 &self
-                    .closures
+                    .closure_vars
                     .iter()
                     .map(|c| {
                         js_module
@@ -283,7 +284,7 @@ impl fmt::Debug for FunctionSection<'_> {
         f.debug_struct("FunctionSection")
             .field("header", &self.header)
             .field("locals", &self.locals)
-            .field("closures", &self.closures)
+            .field("closures_vars", &self.closure_vars)
             .field("operators", &self.operators)
             .field("debug", &self.debug)
             .finish()

@@ -1363,17 +1363,17 @@ impl Opcode {
                         format!("SetArg {{ {} }}", name)
                     }),
                 GetVarRef { index } => js_module
-                    .get_fn_closure_name(fn_idx, *index)
+                    .get_closure_var_name(fn_idx, *index)
                     .map_or(format!("{:?}", self), |name| {
                         format!("GetVarRef {{ {} }}", name)
                     }),
                 PutVarRef { index } => js_module
-                    .get_fn_closure_name(fn_idx, *index)
+                    .get_closure_var_name(fn_idx, *index)
                     .map_or(format!("{:?}", self), |name| {
                         format!("PutVarRef {{ {} }}", name)
                     }),
                 SetVarRef { index } => js_module
-                    .get_fn_closure_name(fn_idx, *index)
+                    .get_closure_var_name(fn_idx, *index)
                     .map_or(format!("{:?}", self), |name| {
                         format!("SetVarRef {{ {} }}", name)
                     }),
@@ -1403,17 +1403,17 @@ impl Opcode {
                         format!("GetLocCheckThis {{ {} }}", name)
                     }),
                 GetVarRefCheck { index } => js_module
-                    .get_fn_closure_name(fn_idx, *index)
+                    .get_closure_var_name(fn_idx, *index)
                     .map_or(format!("{:?}", self), |name| {
                         format!("GetVarRefCheck {{ {} }}", name)
                     }),
                 PutVarRefCheck { index } => js_module
-                    .get_fn_closure_name(fn_idx, *index)
+                    .get_closure_var_name(fn_idx, *index)
                     .map_or(format!("{:?}", self), |name| {
                         format!("PutVarRefCheck {{ {} }}", name)
                     }),
                 PutVarRefCheckInit { index } => js_module
-                    .get_fn_closure_name(fn_idx, *index)
+                    .get_closure_var_name(fn_idx, *index)
                     .map_or(format!("{:?}", self), |name| {
                         format!("PutVarRefCheckInit {{ {} }}", name)
                     }),
@@ -1595,7 +1595,7 @@ impl Opcode {
                 GetVarRef0 | GetVarRef1 | GetVarRef2 | GetVarRef3 => {
                     let index = self.discriminant() - 223 as u8;
                     js_module
-                        .get_fn_closure_name(fn_idx, index as u16)
+                        .get_closure_var_name(fn_idx, index as u16)
                         .map_or(format!("{:?}", self), |name| {
                             format!("GetVarRef{} {{ {} }}", index, name)
                         })
@@ -1603,7 +1603,7 @@ impl Opcode {
                 PutVarRef0 | PutVarRef1 | PutVarRef2 | PutVarRef3 => {
                     let index = self.discriminant() - 227 as u8;
                     js_module
-                        .get_fn_closure_name(fn_idx, index as u16)
+                        .get_closure_var_name(fn_idx, index as u16)
                         .map_or(format!("{:?}", self), |name| {
                             format!("PutVarRef{} {{ {} }}", index, name)
                         })
@@ -1611,7 +1611,7 @@ impl Opcode {
                 SetVarRef0 | SetVarRef1 | SetVarRef2 | SetVarRef3 => {
                     let index = self.discriminant() - 231 as u8;
                     js_module
-                        .get_fn_closure_name(fn_idx, index as u16)
+                        .get_closure_var_name(fn_idx, index as u16)
                         .map_or(format!("{:?}", self), |name| {
                             format!("SetVarRef{} {{ {} }}", index, name)
                         })
