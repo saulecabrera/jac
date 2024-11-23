@@ -4,6 +4,7 @@ use std::io::{Read, Write};
 use std::path::PathBuf;
 
 use anyhow::Result;
+use jac_translate::TranslationBuilder;
 use javy::Config;
 use javy::Runtime;
 use parsetrace::ProfileTraceParser;
@@ -31,7 +32,9 @@ fn main() -> Result<()> {
     let runtime = Runtime::new(config).unwrap();
     let results = runtime.compile_to_bytecode(&js_file_name, &js_str);
     let binding = results.unwrap();
-    let trace_parser = ProfileTraceParser::new(&trace_str, binding.as_slice())?;
+    let mut builder = TranslationBuilder::new();
+    let translation = builder.translate(binding.as_slice())?;
+    let trace_parser = ProfileTraceParser::new(&trace_str, &translation)?;
     let mut trace_out_file = File::create(current_dir.join(out_file_name))?;
 
     if let Some(trace) = trace_parser.report_trace() {

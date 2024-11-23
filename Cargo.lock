@@ -195,12 +195,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "jac-translate"
+version = "1.3.0"
+dependencies = [
+ "anyhow",
+ "quickpars",
+]
+
+[[package]]
 name = "jacc"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "parsetrace",
- "quickpars",
+ "jac-translate",
 ]
 
 [[package]]
@@ -314,6 +321,7 @@ name = "parsetrace"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "jac-translate",
  "javy",
  "leb128",
  "quickpars",

@@ -9,6 +9,7 @@ license.workspace = true
 anyhow = { workspace = true }
 smallvec = { workspace = true }
 quickpars = { path = "../quickpars" }
+jac-translate = { path = "../translate/" }
 javy = "3.0.1"
 leb128 = "0.2.5"
 
