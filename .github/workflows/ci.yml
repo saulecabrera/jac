@@ -4,12 +4,9 @@ on:
   push:
     branches:
       - main
-
-pull_request:
-
+  pull_request:
 
 jobs:
-
   cache:
     name: Setup cargo cache
     steps:
