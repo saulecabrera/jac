@@ -1,4 +1,4 @@
-// built-in atom definitions in the quickjs engine.
+// Built-in atom definitions in the quickjs engine.
 // See https://github.com/bellard/quickjs/blob/36911f0d3ab1a4c190a4d5cbe7c2db225a455389/quickjs-atom.h
 // and https://github.com/DelSkayn/rquickjs/blob/master/sys/patches/error_column_number.patch#L54
 pub const ATOM_NAMES: [&str; 228] = [

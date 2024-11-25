@@ -2,7 +2,8 @@
 
 use core::fmt;
 
-use crate::{op::Opcode, readers::BinaryReader, JsModule};
+use crate::AtomIndex;
+use crate::{op::Opcode, readers::BinaryReader};
 
 pub type OpcodeList = Vec<(u32, Opcode)>;
 
@@ -15,6 +16,15 @@ pub struct HeaderSection {
     pub atoms: Vec<String>,
 }
 
+impl Default for HeaderSection {
+    fn default() -> Self {
+        Self {
+            atom_count: u32::MAX,
+            atoms: Default::default(),
+        }
+    }
+}
+
 impl HeaderSection {
     /// Creates a new [HeaderSection].
     pub(crate) fn new(atom_count: u32, atoms: Vec<String>) -> Self {
@@ -22,7 +32,7 @@ impl HeaderSection {
     }
 }
 #[derive(Debug, Clone)]
-pub struct ModuleSection {
+pub struct ModuleSectionHeader {
     /// The index of the module name.
     pub name_index: u32,
     /// The names of required modules, as index into the atom table.
@@ -37,8 +47,21 @@ pub struct ModuleSection {
     pub has_tla: u8,
 }
 
-impl ModuleSection {
-    /// Creates a new [ModuleSection].
+impl Default for ModuleSectionHeader {
+    fn default() -> Self {
+        Self {
+            name_index: u32::MAX,
+            req_modules: Default::default(),
+            exports: Default::default(),
+            star_exports: Default::default(),
+            imports: Default::default(),
+            has_tla: u8::MAX,
+        }
+    }
+}
+
+impl ModuleSectionHeader {
+    /// Creates a new [ModuleSectionHeader].
     pub(crate) fn new(
         name_index: u32,
         req_modules: Vec<u32>,
@@ -84,17 +107,17 @@ pub struct FunctionSectionHeader {
     /// Function flags.
     pub flags: u16,
     /// The index of the function name.
-    pub name_index: u32,
+    pub name_index: AtomIndex,
     /// The argument count.
     pub arg_count: u32,
     /// The variable count.
     pub var_count: u32,
-    /// The{ defined argument count.
+    /// The defined argument count.
     pub defined_arg_count: u32,
     /// The stack size.
     pub stack_size: u32,
-    /// The closure count.
-    pub closure_count: u32,
+    /// List of variables in the closure.
+    pub closure_var_count: u32,
     /// The number of elements in the constant pool.
     pub constant_pool_size: u32,
     /// The function bytecode length.
@@ -105,8 +128,8 @@ pub struct FunctionSectionHeader {
 
 /// Closure variable information.
 #[derive(Debug, Default, Clone)]
-pub struct FunctionClosure {
-    pub name_index: u32,
+pub struct FunctionClosureVar {
+    pub name_index: AtomIndex,
     pub index: u32,
     pub flags: u8,
 }
@@ -114,7 +137,7 @@ pub struct FunctionClosure {
 /// Function local variable information.
 #[derive(Debug, Default, Copy, Clone)]
 pub struct FunctionLocal {
-    pub name_index: u32,
+    pub name_index: AtomIndex,
     pub scope_level: u32,
     pub scope_next: u32,
     pub flags: u8,
@@ -145,148 +168,6 @@ impl<'a> DebugInfo<'a> {
             line_debug_reader,
             col_debug_reader,
         }
-    }
-}
-
-/// A function section.
-#[derive(Clone)]
-pub struct FunctionSection<'a> {
-    /// The function section header.
-    pub header: FunctionSectionHeader,
-    /// The parsed local variables.
-    pub locals: Vec<FunctionLocal>,
-    /// The locals reader.
-    pub locals_reader: BinaryReader<'a>,
-    /// The parsed closures.
-    pub closures: Vec<FunctionClosure>,
-    /// The closures reader.
-    pub closures_reader: BinaryReader<'a>,
-    /// The parsed opcodes, with their offsets.
-    pub operators: OpcodeList,
-    /// The operators reader.
-    pub operators_reader: BinaryReader<'a>,
-    /// The function debug information.
-    pub debug: Option<DebugInfo<'a>>,
-}
-
-impl<'a> FunctionSection<'a> {
-    /// Create a new [FunctionSection].
-    pub(crate) fn new(
-        header: FunctionSectionHeader,
-        locals: Vec<FunctionLocal>,
-        locals_reader: BinaryReader<'a>,
-        closures: Vec<FunctionClosure>,
-        closures_reader: BinaryReader<'a>,
-        mut operators_reader: BinaryReader<'a>,
-        debug: Option<DebugInfo<'a>>,
-    ) -> Self {
-        let mut operators = vec![];
-        while !operators_reader.done() {
-            if let Ok(op) = Opcode::from_reader(&mut operators_reader) {
-                operators.push(op);
-            }
-        }
-        // reset the reader offset
-        operators_reader.offset = 0;
-        Self {
-            header,
-            locals,
-            locals_reader,
-            closures,
-            closures_reader,
-            operators,
-            operators_reader,
-            debug,
-        }
-    }
-
-    /// Returns the function section header.
-    pub fn header(&self) -> &FunctionSectionHeader {
-        &self.header
-    }
-
-    pub fn operators(&self) -> &[(u32, Opcode)] {
-        &self.operators
-    }
-
-    pub fn get_local(&self, idx: u16) -> Option<&FunctionLocal> {
-        self.locals.get(idx as usize)
-    }
-
-    pub fn get_closure(&self, idx: u16) -> Option<&FunctionClosure> {
-        self.closures.get(idx as usize)
-    }
-
-    pub fn fmt_report(
-        &self,
-        js_module: &JsModule,
-        fn_idx: u32,
-        f: &mut fmt::Formatter,
-    ) -> fmt::Result {
-        f.debug_struct("FunctionSection")
-            .field(
-                "name",
-                &js_module.get_fn_name(fn_idx).unwrap_or("".to_string()),
-            )
-            .field(
-                "args",
-                &self
-                    .locals
-                    .iter()
-                    .take(self.header.arg_count as usize)
-                    .map(|l| {
-                        js_module
-                            .get_atom_name(l.name_index)
-                            .unwrap_or("".to_string())
-                    })
-                    .collect::<Vec<_>>(),
-            )
-            .field(
-                "local_vars",
-                &self
-                    .locals
-                    .iter()
-                    .skip(self.header.arg_count as usize)
-                    .map(|l| {
-                        js_module
-                            .get_atom_name(l.name_index)
-                            .unwrap_or("".to_string())
-                    })
-                    .collect::<Vec<_>>(),
-            )
-            .field(
-                "closures",
-                &self
-                    .closures
-                    .iter()
-                    .map(|c| {
-                        js_module
-                            .get_atom_name(c.name_index)
-                            .unwrap_or("".to_string())
-                    })
-                    .collect::<Vec<_>>(),
-            )
-            .field(
-                "operators",
-                &self
-                    .operators
-                    .iter()
-                    .map(|(pc, op)| op.report(*pc, fn_idx, &js_module))
-                    .collect::<Vec<_>>(),
-            )
-            .finish()
-    }
-}
-
-impl fmt::Debug for FunctionSection<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("FunctionSection")
-            .field("header", &self.header)
-            .field("locals", &self.locals)
-            .field("closures", &self.closures)
-            .field("operators", &self.operators)
-            .field("debug", &self.debug)
-            .finish()
     }
 }
 

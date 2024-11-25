@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use quickpars::{JsModule, Opcode};
+use quickpars::Opcode;
 
 use crate::{trace::BytecodeTraceEvent, MatchedFuncInfo, ProfiledOpcodeList};
 
@@ -52,14 +52,14 @@ pub(crate) fn recover_bytecodes(
 /// Match each recovered function bytecode to its corresponding function name,
 /// by performing a partial match with the complete function bytecode from the js module.
 pub(crate) fn match_all_functions(
-    js_module: &JsModule,
+    meta: &HashMap<u32, Vec<(u32, Opcode)>>,
     recovered_bytecodes: &HashMap<u32, Vec<(u32, u8)>>,
 ) -> HashMap<u32, MatchedFuncInfo> {
     let mut result = HashMap::new();
     let mut prev_matched_js_funcs = HashSet::new();
     for (recovered_func_id, recovered_bytes) in recovered_bytecodes {
         let matched_js_func =
-            match_single_function(recovered_bytes, js_module, &mut prev_matched_js_funcs);
+            match_single_function(recovered_bytes, meta, &mut prev_matched_js_funcs);
         if let Some(matched_js_func) = matched_js_func {
             result.insert(*recovered_func_id, matched_js_func);
         }
@@ -69,17 +69,18 @@ pub(crate) fn match_all_functions(
 
 pub(crate) fn match_single_function(
     recovered_bytes: &Vec<(u32, u8)>,
-    js_module: &JsModule,
+    meta: &HashMap<u32, Vec<(u32, Opcode)>>,
     matched_js_func_idx: &mut HashSet<u32>,
 ) -> Option<MatchedFuncInfo> {
-    for i in 0..js_module.functions.len() {
-        if matched_js_func_idx.contains(&(i as u32)) {
+    for i in meta.keys() {
+        if matched_js_func_idx.contains(&(*i as u32)) {
             continue;
         }
-        let func_bytecode = js_module.functions[i].operators();
-        if let Some(matched_opcode_pairs) = match_pair(recovered_bytes, func_bytecode) {
-            matched_js_func_idx.insert(i as u32);
-            return Some((i as u32, matched_opcode_pairs));
+
+        let operators = meta.get(i).unwrap();
+        if let Some(matched_opcode_pairs) = match_pair(recovered_bytes, &operators) {
+            matched_js_func_idx.insert(*i as u32);
+            return Some((*i as u32, matched_opcode_pairs));
         }
     }
     None

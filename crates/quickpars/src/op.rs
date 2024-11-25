@@ -1,4 +1,5 @@
-use crate::{readers::BinaryReader, JsModule};
+use crate::readers::BinaryReader;
+use crate::{AtomIndex, ClosureVarIndex, ConstantPoolIndex, LocalIndex};
 use anyhow::{bail, Result};
 
 /// A QuickJS operator code.
@@ -14,22 +15,22 @@ pub enum Opcode {
     /// Push a constant value.
     PushConst {
         /// The index of the constant in the constant pool.
-        index: u32,
+        index: ConstantPoolIndex,
     },
     /// Push a function closure value.
     FClosure {
         /// The index of the closure in the constant pool.
-        index: u32,
+        index: ConstantPoolIndex,
     },
     /// Push an atom constant.
     PushAtomValue {
         /// The immediate value of the atom.
-        atom: u32,
+        atom: AtomIndex,
     },
     /// Push a private symbol from an atom immediate.
     PrivateSymbol {
         /// The immediate value of the atom.
-        atom: u32,
+        atom: AtomIndex,
     },
     /// Push undefined value.
     Undefined,
@@ -116,7 +117,7 @@ pub enum Opcode {
     Throw,
     ThrowError {
         ty: u8,
-        atom: u32,
+        atom: AtomIndex,
     },
     Eval {
         scope: u16,
@@ -131,45 +132,45 @@ pub enum Opcode {
     Import,
 
     CheckVar {
-        atom: u32,
+        atom: AtomIndex,
     },
     GetVarUndef {
-        atom: u32,
+        atom: AtomIndex,
     },
     GetVar {
-        atom: u32,
+        atom: AtomIndex,
     },
     PutVar {
-        atom: u32,
+        atom: AtomIndex,
     },
     PutVarInit {
-        atom: u32,
+        atom: AtomIndex,
     },
     PutVarStrict {
-        atom: u32,
+        atom: AtomIndex,
     },
     GetRefValue,
     PutRefValue,
     DefineVar {
         flags: u8,
-        atom: u32,
+        atom: AtomIndex,
     },
     CheckDefineVar {
         flags: u8,
-        atom: u32,
+        atom: AtomIndex,
     },
     DefineFunc {
         flags: u8,
-        atom: u32,
+        atom: AtomIndex,
     },
     GetField {
-        atom: u32,
+        atom: AtomIndex,
     },
     GetField2 {
-        atom: u32,
+        atom: AtomIndex,
     },
     PutField {
-        atom: u32,
+        atom: AtomIndex,
     },
     GetPrivateField,
     PutPrivateField,
@@ -180,10 +181,10 @@ pub enum Opcode {
     GetSuperValue,
     PutSuperValue,
     DefineField {
-        atom: u32,
+        atom: AtomIndex,
     },
     SetName {
-        atom: u32,
+        atom: AtomIndex,
     },
     SetNameComputed,
     SetProto,
@@ -194,7 +195,7 @@ pub enum Opcode {
         mask: u8,
     },
     DefineMethod {
-        atom: u32,
+        atom: AtomIndex,
         flags: u8,
     },
     DefineMethodComputed {
@@ -202,65 +203,65 @@ pub enum Opcode {
     },
     DefineClass {
         flags: u8,
-        atom: u32,
+        atom: AtomIndex,
     },
     DefineClassComputed {
         flags: u8,
-        atom: u32,
+        atom: AtomIndex,
     },
     GetLoc {
         // index to local variable list (after arg list)
-        index: u16,
+        index: LocalIndex,
     },
     PutLoc {
-        index: u16,
+        index: LocalIndex,
     },
     SetLoc {
-        index: u16,
+        index: LocalIndex,
     },
     GetArg {
         // index to arg list
-        index: u16,
+        index: LocalIndex,
     },
     PutArg {
-        index: u16,
+        index: LocalIndex,
     },
     SetArg {
-        index: u16,
+        index: LocalIndex,
     },
     GetVarRef {
         // index to the closures list
-        index: u16,
+        index: ClosureVarIndex,
     },
     PutVarRef {
-        index: u16,
+        index: ClosureVarIndex,
     },
     SetVarRef {
-        index: u16,
+        index: ClosureVarIndex,
     },
     SetLocUninit {
-        index: u16,
+        index: LocalIndex,
     },
     GetLocCheck {
-        index: u16,
+        index: LocalIndex,
     },
     PutLocCheck {
-        index: u16,
+        index: LocalIndex,
     },
     PutLocCheckInit {
-        index: u16,
+        index: LocalIndex,
     },
     GetLocCheckThis {
-        index: u16,
+        index: LocalIndex,
     },
     GetVarRefCheck {
-        index: u16,
+        index: ClosureVarIndex,
     },
     PutVarRefCheck {
-        index: u16,
+        index: ClosureVarIndex,
     },
     PutVarRefCheckInit {
-        index: u16,
+        index: ClosureVarIndex,
     },
     CloseLoc {
         // TODO: figure out what this is
@@ -288,49 +289,49 @@ pub enum Opcode {
     ToPropKey,
     ToPropKey2,
     WithGetVar {
-        atom: u32,
+        atom: AtomIndex,
         diff: u32,
         is_with: u8,
     },
     WithPutVar {
-        atom: u32,
+        atom: AtomIndex,
         diff: u32,
         is_with: u8,
     },
     WithDeleteVar {
-        atom: u32,
+        atom: AtomIndex,
         diff: u32,
         is_with: u8,
     },
     WithMakeRef {
-        atom: u32,
+        atom: AtomIndex,
         diff: u32,
         is_with: u8,
     },
     WithGetRef {
-        atom: u32,
+        atom: AtomIndex,
         diff: u32,
         is_with: u8,
     },
     WithGetRefUndef {
-        atom: u32,
+        atom: AtomIndex,
         diff: u32,
         is_with: u8,
     },
     MakeLocRef {
-        atom: u32,
+        atom: AtomIndex,
         idx: u16,
     },
     MakeArgRef {
-        atom: u32,
+        atom: AtomIndex,
         idx: u16,
     },
     MakeVarRefRef {
-        atom: u32,
+        atom: AtomIndex,
         idx: u16,
     },
     MakeVarRef {
-        atom: u32,
+        atom: AtomIndex,
     },
     ForInStart,
     ForOfStart,
@@ -358,20 +359,20 @@ pub enum Opcode {
     PostDec,
     PostInc,
     DecLoc {
-        index: u8,
+        index: LocalIndex,
     },
     IncLoc {
-        index: u8,
+        index: LocalIndex,
     },
     AddLoc {
-        index: u8,
+        index: LocalIndex,
     },
     Not,
     LNot,
     TypeOf,
     Delete,
     DeleteVar {
-        atom: u32,
+        atom: AtomIndex,
     },
     Mul,
     Div,
@@ -420,17 +421,17 @@ pub enum Opcode {
         index: u8,
     },
     FClosure8 {
-        index: u8,
+        index: ConstantPoolIndex,
     },
     PushEmptyString,
     GetLoc8 {
-        index: u8,
+        index: LocalIndex,
     },
     PutLoc8 {
-        index: u8,
+        index: LocalIndex,
     },
     SetLoc8 {
-        index: u8,
+        index: LocalIndex,
     },
     GetLoc0,
     GetLoc1,
@@ -503,16 +504,16 @@ impl Opcode {
                 value: i32::try_from(reader.read_u32()?)?,
             },
             2 => PushConst {
-                index: reader.read_u32()?,
+                index: ConstantPoolIndex::from_u32(reader.read_u32()?),
             },
             3 => FClosure {
-                index: reader.read_u32()?,
+                index: ConstantPoolIndex::from_u32(reader.read_u32()?),
             },
             4 => PushAtomValue {
-                atom: reader.read_u32()?,
+                atom: AtomIndex::from_u32(reader.read_u32()?),
             },
             5 => PrivateSymbol {
-                atom: reader.read_u32()?,
+                atom: AtomIndex::from_u32(reader.read_u32()?),
             },
             6 => Undefined,
             7 => Null,
@@ -575,7 +576,7 @@ impl Opcode {
             46 => ReturnAsync,
             47 => Throw,
             48 => {
-                let atom = reader.read_u32()?;
+                let atom = AtomIndex::from_u32(reader.read_u32()?);
                 let ty = reader.read_u8()?;
                 ThrowError { atom, ty }
             }
@@ -591,27 +592,27 @@ impl Opcode {
             52 => GetSuper,
             53 => Import,
             54 => CheckVar {
-                atom: reader.read_u32()?,
+                atom: AtomIndex::from_u32(reader.read_u32()?),
             },
             55 => GetVarUndef {
-                atom: reader.read_u32()?,
+                atom: AtomIndex::from_u32(reader.read_u32()?),
             },
             56 => GetVar {
-                atom: reader.read_u32()?,
+                atom: AtomIndex::from_u32(reader.read_u32()?),
             },
             57 => PutVar {
-                atom: reader.read_u32()?,
+                atom: AtomIndex::from_u32(reader.read_u32()?),
             },
             58 => PutVarInit {
-                atom: reader.read_u32()?,
+                atom: AtomIndex::from_u32(reader.read_u32()?),
             },
             59 => PutVarStrict {
-                atom: reader.read_u32()?,
+                atom: AtomIndex::from_u32(reader.read_u32()?),
             },
             60 => GetRefValue,
             61 => PutRefValue,
             62 | 63 => {
-                let atom = reader.read_u32()?;
+                let atom = AtomIndex::from_u32(reader.read_u32()?);
                 let flags = reader.read_u8()?;
                 if byte == 62 {
                     DefineVar { flags, atom }
@@ -620,18 +621,18 @@ impl Opcode {
                 }
             }
             64 => {
-                let atom = reader.read_u32()?;
+                let atom = AtomIndex::from_u32(reader.read_u32()?);
                 let flags = reader.read_u8()?;
                 DefineFunc { flags, atom }
             }
             65 => GetField {
-                atom: reader.read_u32()?,
+                atom: AtomIndex::from_u32(reader.read_u32()?),
             },
             66 => GetField2 {
-                atom: reader.read_u32()?,
+                atom: AtomIndex::from_u32(reader.read_u32()?),
             },
             67 => PutField {
-                atom: reader.read_u32()?,
+                atom: AtomIndex::from_u32(reader.read_u32()?),
             },
             68 => GetPrivateField,
             69 => PutPrivateField,
@@ -642,10 +643,10 @@ impl Opcode {
             74 => GetSuperValue,
             75 => PutSuperValue,
             76 => DefineField {
-                atom: reader.read_u32()?,
+                atom: AtomIndex::from_u32(reader.read_u32()?),
             },
             77 => SetName {
-                atom: reader.read_u32()?,
+                atom: AtomIndex::from_u32(reader.read_u32()?),
             },
             78 => SetNameComputed,
             79 => SetProto,
@@ -656,7 +657,7 @@ impl Opcode {
                 mask: reader.read_u8()?,
             },
             84 => {
-                let atom = reader.read_u32()?;
+                let atom = AtomIndex::from_u32(reader.read_u32()?);
                 let flags = reader.read_u8()?;
                 DefineMethod { atom, flags }
             }
@@ -664,7 +665,7 @@ impl Opcode {
                 flags: reader.read_u8()?,
             },
             86 | 87 => {
-                let atom = reader.read_u32()?;
+                let atom = AtomIndex::from_u32(reader.read_u32()?);
                 let flags = reader.read_u8()?;
                 if byte == 86 {
                     DefineClass { atom, flags }
@@ -673,55 +674,55 @@ impl Opcode {
                 }
             }
             88 => GetLoc {
-                index: reader.read_u16()?,
+                index: LocalIndex::from_u32(reader.read_u16()? as u32),
             },
             89 => PutLoc {
-                index: reader.read_u16()?,
+                index: LocalIndex::from_u32(reader.read_u16()? as u32),
             },
             90 => SetLoc {
-                index: reader.read_u16()?,
+                index: LocalIndex::from_u32(reader.read_u16()? as u32),
             },
             91 => GetArg {
-                index: reader.read_u16()?,
+                index: LocalIndex::from_u32(reader.read_u16()? as u32),
             },
             92 => PutArg {
-                index: reader.read_u16()?,
+                index: LocalIndex::from_u32(reader.read_u16()? as u32),
             },
             93 => SetArg {
-                index: reader.read_u16()?,
+                index: LocalIndex::from_u32(reader.read_u16()? as u32),
             },
             94 => GetVarRef {
-                index: reader.read_u16()?,
+                index: ClosureVarIndex::from_u32(reader.read_u16()? as u32),
             },
             95 => PutVarRef {
-                index: reader.read_u16()?,
+                index: ClosureVarIndex::from_u32(reader.read_u16()? as u32),
             },
             96 => SetVarRef {
-                index: reader.read_u16()?,
+                index: ClosureVarIndex::from_u32(reader.read_u16()? as u32),
             },
             97 => SetLocUninit {
-                index: reader.read_u16()?,
+                index: LocalIndex::from_u32(reader.read_u16()? as u32),
             },
             98 => GetLocCheck {
-                index: reader.read_u16()?,
+                index: LocalIndex::from_u32(reader.read_u16()? as u32),
             },
             99 => PutLocCheck {
-                index: reader.read_u16()?,
+                index: LocalIndex::from_u32(reader.read_u16()? as u32),
             },
             100 => PutLocCheckInit {
-                index: reader.read_u16()?,
+                index: LocalIndex::from_u32(reader.read_u16()? as u32),
             },
             101 => GetLocCheckThis {
-                index: reader.read_u16()?,
+                index: LocalIndex::from_u32(reader.read_u16()? as u32),
             },
             102 => GetVarRefCheck {
-                index: reader.read_u16()?,
+                index: ClosureVarIndex::from_u32(reader.read_u16()? as u32),
             },
             103 => PutVarRefCheck {
-                index: reader.read_u16()?,
+                index: ClosureVarIndex::from_u32(reader.read_u16()? as u32),
             },
             104 => PutVarRefCheckInit {
-                index: reader.read_u16()?,
+                index: ClosureVarIndex::from_u32(reader.read_u16()? as u32),
             },
             105 => CloseLoc {
                 index: reader.read_u16()?,
@@ -747,7 +748,7 @@ impl Opcode {
             114 => ToPropKey,
             115 => ToPropKey2,
             116..=121 => {
-                let atom = reader.read_u32()?;
+                let atom = AtomIndex::from_u32(reader.read_u32()?);
                 let diff = reader.read_u32()?;
                 let is_with = reader.read_u8()?;
                 match byte {
@@ -785,22 +786,22 @@ impl Opcode {
                 }
             }
             122 => {
-                let atom = reader.read_u32()?;
+                let atom = AtomIndex::from_u32(reader.read_u32()?);
                 let idx = reader.read_u16()?;
                 MakeLocRef { atom, idx }
             }
             123 => {
-                let atom = reader.read_u32()?;
+                let atom = AtomIndex::from_u32(reader.read_u32()?);
                 let idx = reader.read_u16()?;
                 MakeArgRef { atom, idx }
             }
             124 => {
-                let atom = reader.read_u32()?;
+                let atom = AtomIndex::from_u32(reader.read_u32()?);
                 let idx = reader.read_u16()?;
                 MakeVarRefRef { atom, idx }
             }
             125 => MakeVarRef {
-                atom: reader.read_u32()?,
+                atom: AtomIndex::from_u32(reader.read_u32()?),
             },
             126 => ForInStart,
             127 => ForOfStart,
@@ -828,20 +829,20 @@ impl Opcode {
             145 => PostDec,
             146 => PostInc,
             147 => DecLoc {
-                index: reader.read_u8()?,
+                index: LocalIndex::from_u32(reader.read_u8()? as u32),
             },
             148 => IncLoc {
-                index: reader.read_u8()?,
+                index: LocalIndex::from_u32(reader.read_u8()? as u32),
             },
             149 => AddLoc {
-                index: reader.read_u8()?,
+                index: LocalIndex::from_u32(reader.read_u8()? as u32),
             },
             150 => Not,
             151 => LNot,
             152 => TypeOf,
             153 => Delete,
             154 => DeleteVar {
-                atom: reader.read_u32()?,
+                atom: AtomIndex::from_u32(reader.read_u32()?),
             },
             155 => Mul,
             156 => Div,
@@ -889,17 +890,17 @@ impl Opcode {
                 index: reader.read_u8()?,
             },
             194 => FClosure8 {
-                index: reader.read_u8()?,
+                index: ConstantPoolIndex::from_u32(reader.read_u8()? as u32),
             },
             195 => PushEmptyString,
             196 => GetLoc8 {
-                index: reader.read_u8()?,
+                index: LocalIndex::from_u32(reader.read_u8()? as u32),
             },
             197 => PutLoc8 {
-                index: reader.read_u8()?,
+                index: LocalIndex::from_u32(reader.read_u8()? as u32),
             },
             198 => SetLoc8 {
-                index: reader.read_u8()?,
+                index: LocalIndex::from_u32(reader.read_u8()? as u32),
             },
             199 => GetLoc0,
             200 => GetLoc1,
@@ -1217,408 +1218,6 @@ impl Opcode {
             _ => "Unknown",
         }
         .to_string()
-    }
-
-    /// returns the canonical name of the opcode with immediates, using the given js module definitions.
-    pub fn report(&self, pc: u32, fn_idx: u32, js_module: &JsModule) -> String {
-        use Opcode::*;
-        format!(
-            "{}: {}",
-            pc,
-            match self {
-                FClosure { index } => js_module
-                    .get_fn_name(*index + fn_idx + 1)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("FClosure {{ {} }}", name)
-                    }),
-                PushAtomValue { atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("PushAtomValue {{ {} }}", name)
-                    }),
-                PrivateSymbol { atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("PrivateSymbol {{ {} }}", name)
-                    }),
-                ThrowError { ty, atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("ThrowError {{ ty: {} {} }}", ty, name)
-                    }),
-                CheckVar { atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("CheckVar {{ {} }}", name)
-                    }),
-                GetVarUndef { atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("GetVarUndef {{ {} }}", name)
-                    }),
-                GetVar { atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("GetVar {{ {} }}", name)
-                    }),
-                PutVar { atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("PutVar {{ {} }}", name)
-                    }),
-                PutVarInit { atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("PutVarInit {{ {} }}", name)
-                    }),
-                PutVarStrict { atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("PutVarStrict {{ {} }}", name)
-                    }),
-                DefineVar { flags, atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("DefineVar {{ flags: {} {} }}", flags, name)
-                    }),
-                CheckDefineVar { flags, atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("CheckDefineVar {{ flags: {} {} }}", flags, name)
-                    }),
-                DefineFunc { flags, atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("DefineFunc {{ flags: {} {} }}", flags, name)
-                    }),
-                GetField { atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("GetField {{ {} }}", name)
-                    }),
-                GetField2 { atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("GetField2 {{ {} }}", name)
-                    }),
-                PutField { atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("PutField {{ {} }}", name)
-                    }),
-                DefineField { atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("DefineField {{ {} }}", name)
-                    }),
-                SetName { atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("SetName {{ {} }}", name)
-                    }),
-                DefineMethod { atom, flags } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("DefineMethod {{ {} {} }}", name, flags)
-                    }),
-                DefineMethodComputed { flags } => format!("DefineMethodComputed {{ {} }}", flags),
-                DefineClass { flags, atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("DefineClass {{ flags: {} {} }}", flags, name)
-                    }),
-                DefineClassComputed { flags, atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("DefineClassComputed {{ flags: {} {} }}", flags, name)
-                    }),
-                GetLoc { index } => js_module
-                    .get_fn_loc_name(fn_idx, *index)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("GetLoc {{ {} }}", name)
-                    }),
-                PutLoc { index } => js_module
-                    .get_fn_loc_name(fn_idx, *index)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("PutLoc {{ {} }}", name)
-                    }),
-                SetLoc { index } => js_module
-                    .get_fn_loc_name(fn_idx, *index)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("SetLoc {{ {} }}", name)
-                    }),
-                GetArg { index } => js_module
-                    .get_fn_arg_name(fn_idx, *index)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("GetArg {{ {} }}", name)
-                    }),
-                PutArg { index } => js_module
-                    .get_fn_arg_name(fn_idx, *index)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("PutArg {{ {} }}", name)
-                    }),
-                SetArg { index } => js_module
-                    .get_fn_arg_name(fn_idx, *index)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("SetArg {{ {} }}", name)
-                    }),
-                GetVarRef { index } => js_module
-                    .get_fn_closure_name(fn_idx, *index)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("GetVarRef {{ {} }}", name)
-                    }),
-                PutVarRef { index } => js_module
-                    .get_fn_closure_name(fn_idx, *index)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("PutVarRef {{ {} }}", name)
-                    }),
-                SetVarRef { index } => js_module
-                    .get_fn_closure_name(fn_idx, *index)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("SetVarRef {{ {} }}", name)
-                    }),
-                SetLocUninit { index } => js_module
-                    .get_fn_loc_name(fn_idx, *index)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("SetLocUninit {{ {} }}", name)
-                    }),
-                GetLocCheck { index } => js_module
-                    .get_fn_loc_name(fn_idx, *index)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("GetLocCheck {{ {} }}", name)
-                    }),
-                PutLocCheck { index } => js_module
-                    .get_fn_loc_name(fn_idx, *index)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("PutLocCheck {{ {} }}", name)
-                    }),
-                PutLocCheckInit { index } => js_module
-                    .get_fn_loc_name(fn_idx, *index)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("PutLocCheckInit {{ {} }}", name)
-                    }),
-                GetLocCheckThis { index } => js_module
-                    .get_fn_loc_name(fn_idx, *index)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("GetLocCheckThis {{ {} }}", name)
-                    }),
-                GetVarRefCheck { index } => js_module
-                    .get_fn_closure_name(fn_idx, *index)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("GetVarRefCheck {{ {} }}", name)
-                    }),
-                PutVarRefCheck { index } => js_module
-                    .get_fn_closure_name(fn_idx, *index)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("PutVarRefCheck {{ {} }}", name)
-                    }),
-                PutVarRefCheckInit { index } => js_module
-                    .get_fn_closure_name(fn_idx, *index)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("PutVarRefCheckInit {{ {} }}", name)
-                    }),
-                WithGetVar {
-                    atom,
-                    diff,
-                    is_with,
-                } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!(
-                            "WithGetVar {{ {} diff: {} is_with: {} }}",
-                            name, diff, is_with
-                        )
-                    }),
-                WithPutVar {
-                    atom,
-                    diff,
-                    is_with,
-                } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!(
-                            "WithPutVar {{ {} diff: {} is_with: {} }}",
-                            name, diff, is_with
-                        )
-                    }),
-                WithDeleteVar {
-                    atom,
-                    diff,
-                    is_with,
-                } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!(
-                            "WithDeleteVar {{ {} diff: {} is_with: {} }}",
-                            name, diff, is_with
-                        )
-                    }),
-                WithMakeRef {
-                    atom,
-                    diff,
-                    is_with,
-                } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!(
-                            "WithMakeRef {{ {} diff: {} is_with: {} }}",
-                            name, diff, is_with
-                        )
-                    }),
-                WithGetRef {
-                    atom,
-                    diff,
-                    is_with,
-                } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!(
-                            "WithGetRef {{ {} diff: {} is_with: {} }}",
-                            name, diff, is_with
-                        )
-                    }),
-                WithGetRefUndef {
-                    atom,
-                    diff,
-                    is_with,
-                } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!(
-                            "WithGetRefUndef {{ {} diff: {} is_with: {} }}",
-                            name, diff, is_with
-                        )
-                    }),
-                MakeLocRef { atom, idx } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("MakeLocRef {{ {} idx: {} }}", name, idx)
-                    }),
-                MakeArgRef { atom, idx } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("MakeArgRef {{ {} idx: {} }}", name, idx)
-                    }),
-                MakeVarRefRef { atom, idx } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("MakeVarRefRef {{ {} idx: {} }}", name, idx)
-                    }),
-                MakeVarRef { atom } => js_module
-                    .get_atom_name(*atom)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("MakeVarRef {{ {} }}", name)
-                    }),
-                DecLoc { index } => js_module
-                    .get_fn_loc_name(fn_idx, *index as u16)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("DecLoc {{ {} }}", name)
-                    }),
-                IncLoc { index } => js_module
-                    .get_fn_loc_name(fn_idx, *index as u16)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("IncLoc {{ {} }}", name)
-                    }),
-                AddLoc { index } => js_module
-                    .get_fn_loc_name(fn_idx, *index as u16)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("AddLoc {{ {} }}", name)
-                    }),
-                FClosure8 { index } => js_module
-                    .get_fn_name(*index as u32 + fn_idx + 1)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("FClosure8 {{ {} }}", name)
-                    }),
-                GetLoc8 { index } => js_module
-                    .get_fn_loc_name(fn_idx, *index as u16)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("GetLoc8 {{ {} }}", name)
-                    }),
-                PutLoc8 { index } => js_module
-                    .get_fn_loc_name(fn_idx, *index as u16)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("PutLoc8 {{ {} }}", name)
-                    }),
-                SetLoc8 { index } => js_module
-                    .get_fn_loc_name(fn_idx, *index as u16)
-                    .map_or(format!("{:?}", self), |name| {
-                        format!("SetLoc8 {{ {} }}", name)
-                    }),
-                GetLoc0 | GetLoc1 | GetLoc2 | GetLoc3 => {
-                    let index = self.discriminant() - 199 as u8;
-                    js_module
-                        .get_fn_loc_name(fn_idx, index as u16)
-                        .map_or(format!("{:?}", self), |name| {
-                            format!("GetLoc{} {{ {} }}", index, name)
-                        })
-                }
-                PutLoc0 | PutLoc1 | PutLoc2 | PutLoc3 => {
-                    let index = self.discriminant() - 203 as u8;
-                    js_module
-                        .get_fn_loc_name(fn_idx, index as u16)
-                        .map_or(format!("{:?}", self), |name| {
-                            format!("PutLoc{} {{ {} }}", index, name)
-                        })
-                }
-                SetLoc0 | SetLoc1 | SetLoc2 | SetLoc3 => {
-                    let index = self.discriminant() - 207 as u8;
-                    js_module
-                        .get_fn_loc_name(fn_idx, index as u16)
-                        .map_or(format!("{:?}", self), |name| {
-                            format!("SetLoc{} {{ {} }}", index, name)
-                        })
-                }
-                GetArg0 | GetArg1 | GetArg2 | GetArg3 => {
-                    let index = self.discriminant() - 211 as u8;
-                    js_module
-                        .get_fn_arg_name(fn_idx, index as u16)
-                        .map_or(format!("{:?}", self), |name| {
-                            format!("GetArg{} {{ {} }}", index, name)
-                        })
-                }
-                PutArg0 | PutArg1 | PutArg2 | PutArg3 => {
-                    let index = self.discriminant() - 215 as u8;
-                    js_module
-                        .get_fn_arg_name(fn_idx, index as u16)
-                        .map_or(format!("{:?}", self), |name| {
-                            format!("PutArg{} {{ {} }}", index, name)
-                        })
-                }
-                SetArg0 | SetArg1 | SetArg2 | SetArg3 => {
-                    let index = self.discriminant() - 219 as u8;
-                    js_module
-                        .get_fn_arg_name(fn_idx, index as u16)
-                        .map_or(format!("{:?}", self), |name| {
-                            format!("SetArg{} {{ {} }}", index, name)
-                        })
-                }
-                GetVarRef0 | GetVarRef1 | GetVarRef2 | GetVarRef3 => {
-                    let index = self.discriminant() - 223 as u8;
-                    js_module
-                        .get_fn_closure_name(fn_idx, index as u16)
-                        .map_or(format!("{:?}", self), |name| {
-                            format!("GetVarRef{} {{ {} }}", index, name)
-                        })
-                }
-                PutVarRef0 | PutVarRef1 | PutVarRef2 | PutVarRef3 => {
-                    let index = self.discriminant() - 227 as u8;
-                    js_module
-                        .get_fn_closure_name(fn_idx, index as u16)
-                        .map_or(format!("{:?}", self), |name| {
-                            format!("PutVarRef{} {{ {} }}", index, name)
-                        })
-                }
-                SetVarRef0 | SetVarRef1 | SetVarRef2 | SetVarRef3 => {
-                    let index = self.discriminant() - 231 as u8;
-                    js_module
-                        .get_fn_closure_name(fn_idx, index as u16)
-                        .map_or(format!("{:?}", self), |name| {
-                            format!("SetVarRef{} {{ {} }}", index, name)
-                        })
-                }
-                _ => format!("{:?}", self),
-            }
-        )
     }
 
     pub fn discriminant(&self) -> u8 {

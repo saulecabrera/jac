@@ -1,5 +1,5 @@
 [package]
-name = "parsetrace"
+name = "jacc"
 version = "0.1.0"
 authors.workspace = true
 edition.workspace = true
@@ -7,12 +7,4 @@ license.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
-smallvec = { workspace = true }
-quickpars = { path = "../quickpars" }
 jac-translate = { path = "../translate/" }
-javy = "3.0.1"
-leb128 = "0.2.5"
-
-[[bin]]
-name = "parsetrace"
-path = "src/main.rs"

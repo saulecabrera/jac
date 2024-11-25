@@ -13,6 +13,13 @@ pub struct BinaryReader<'a> {
 }
 
 impl<'a> BinaryReader<'a> {
+    pub fn empty() -> Self {
+        Self {
+            data: Default::default(),
+            offset: 0,
+        }
+    }
+
     pub fn new(data: &'a [u8]) -> Self {
         Self { data, offset: 0 }
     }

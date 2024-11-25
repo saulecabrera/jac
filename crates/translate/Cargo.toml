@@ -1,11 +1,10 @@
 [package]
-name = "jacc"
-version = "0.1.0"
+name = "jac-translate"
+version.workspace = true
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
 
 [dependencies]
+quickpars = { path = "../quickpars/" }
 anyhow = { workspace = true }
-quickpars = { path = "../quickpars" }
-parsetrace = { path = "../parsetrace" }

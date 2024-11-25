@@ -1,0 +1,13 @@
+[package]
+name = "jacrt"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+rquickjs = { version = "=0.6.1", features = ["array-buffer", "bindgen"] }
+
+[lib]
+name = "jacrt"
+crate-type = ["cdylib"]

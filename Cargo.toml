@@ -1,7 +1,12 @@
 [workspace]
-members = ["crates/quickpars", "crates/jacc", "crates/parsetrace"]
-
 resolver = "2"
+members = [
+  "crates/quickpars",
+  "crates/compiler",
+  "crates/parsetrace",
+  "crates/translate",
+  "crates/rt",
+]
 
 [workspace.package]
 version = "1.3.0"
