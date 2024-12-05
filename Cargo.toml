@@ -6,6 +6,7 @@ members = [
   "crates/parsetrace",
   "crates/translate",
   "crates/rt",
+  "crates/utils",
 ]
 
 [workspace.package]
