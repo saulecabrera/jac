@@ -31,7 +31,7 @@ impl HeaderSection {
         Self { atom_count, atoms }
     }
 }
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct ModuleSectionHeader {
     /// The index of the module name.
     pub name_index: u32,
