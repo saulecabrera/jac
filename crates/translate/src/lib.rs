@@ -11,7 +11,7 @@ pub use quickpars;
 
 use anyhow::Result;
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct Translation<'data> {
     /// Overall information about the program.
     pub header: HeaderSection,
@@ -78,7 +78,7 @@ impl<'data> Translation<'data> {
 /// Contains resolved information about a function.
 /// The operators are not resolved yet and instead this data structure contains
 /// a reader for the operators to be resolved later at compilation time.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct FunctionTranslation<'data> {
     /// The function section header.
     pub header: FunctionSectionHeader,
@@ -118,7 +118,7 @@ impl<'data> FunctionTranslation<'data> {
     }
 }
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug)]
 pub struct ModuleTranslation<'data> {
     /// The module section header.
     pub header: ModuleSectionHeader,

@@ -30,12 +30,12 @@ macro_rules! entity {
         }
 
         impl $name {
-            /// Constructs a function entity from a given usize.
+            /// Constructs a function entity from a given u32.
             pub fn from_u32(val: u32) -> Self {
                 Self(val)
             }
 
-            /// Returns the entity representation as usize.
+            /// Returns the entity representation as u32.
             pub fn as_u32(&self) -> u32 {
                 self.0
             }
