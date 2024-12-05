@@ -1,30 +1,53 @@
 # parsetrace
 
-`parsetrace` is a crate containing functionalities to parse, manipulate, and pretty-print dynamic execution traces for javy produced js modules executed in wasm.
+`parsetrace` is a crate containing functionalities to parse, manipulate, and
+pretty-print dynamic execution traces for
+[Javy](https://github.com/bytecodealliance/javy) produced Wasm modules.
 
 ## Dynamic Trace Format
 
-This program takes in a matching pair of javascript source file, and a structured trace file generated from a special monitor on the wizard wasm engine. The trace file is a csv file. Each row represent a single quickjs opcode execution. The file has the following columns:
+This program takes in a matching pair of JavaScript source file, and
+a structured trace file generated from a special monitor on the [Wizard Wasm
+engine](https://github.com/titzer/wizard-engine).
 
-function_id - a dynamically assigned id for each source js function, only used to distinguish separate function/closure executions.
+The trace file is a CSV file. Each row represent a single QuickJS opcode
+execution. The file has the following columns:
 
-pc_offset - the detected opcode offset, w.r.t. the function start.
+### Function ID
+A dynamically assigned id for each source js function, only used
+to distinguish separate function/closure executions.
 
-opcode - value of the quickjs opcode
+### PC Offset
+The detected opcode offset, w.r.t. the function start.
 
-cost - the amount of fuel used to execute this opcode. Fuel roughly correlates to number of wasm instructions executed.
+### Opcode
+Value of the QuickJS operator
 
-wasm_func_trace - a stack of wasm function invocations in order to execute this quickjs opcode. This provides a detailed breakdown of where the engine is spending the most fuel when executing a quickjs opcode. The value for this field is a list of "wasm execution markers" separated by "|". Each wasm execution marker has the format wasm_func_id:[S|E]:c_fuel. [S|E] marks the start/end of the wasm function, c_fuel marks the cumulative fuel level, relative to the start of this quickjs opcode execution.
+### Cost
+The amount of fuel used to execute this opcode. Fuel roughly correlates
+to number of Wasm instructions executed.
 
-Certain values of the "opcode" column represent special events. When opcode = "00", it signifies wasm engine overhead that cannot be attributed to any quickjs opcode. When opcode = "START|END", it represents the profiled invocation/return of js functions.
+### Wasm Func Trace
+A stack of wasm function invocations in order to execute this
+QuickJS opcode. This provides a detailed breakdown of where the engine is
+spending the most fuel when executing a quickjs opcode. The value for this field
+is a list of "wasm execution markers" separated by "|". Each wasm execution
+marker has the format wasm_func_id:[S|E]:c_fuel. [S|E] marks the start/end of
+the wasm function, c_fuel marks the cumulative fuel level, relative to the start
+of this quickjs opcode execution.
+
+Certain values of the "opcode" column represent special events. When opcode
+= "00", it signifies wasm engine overhead that cannot be attributed to any
+quickjs opcode. When opcode = "START|END", it represents the profiled
+invocation/return of js functions.
 
 ## How to generate trace file
 
-To generate a dynamic trace, you need to first create a static wasm binary from javy:
+To generate a dynamic trace, you need to first create a static wasm binary with Javy, with:
 
 `javy build -C dynamic=n file_to_js`
 
-Then, run the module in the wizard engine with `profile_bytecode` monitor enabled:
+Then, run the module in Wizard with `profile_bytecode` monitor enabled:
 
 `wizeng '--monitors=profile_bytecode{output_folder=profile_result}' static_js_module.wasm`
 
