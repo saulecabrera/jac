@@ -6,7 +6,7 @@ use waffle::{Block, FunctionBody, Local, Signature, Type, Value};
 
 /// The current block.
 #[derive(Default)]
-pub struct CurrentBlock {
+pub(crate) struct CurrentBlock {
     /// The current block.
     block: Block,
     /// Local mapping in the current block.
@@ -50,7 +50,7 @@ impl<'a, 'data> FunctionBuilder<'a, 'data> {
         Ok((self.signature, self.result))
     }
 
-    fn handle_operator(&mut self, reader: &mut BinaryReader<'data>) -> Result<()> {
+    fn handle_operator(&mut self, _reader: &mut BinaryReader<'data>) -> Result<()> {
         Ok(())
     }
 }
