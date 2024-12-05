@@ -28,22 +28,22 @@ The amount of fuel used to execute this opcode. Fuel roughly correlates
 to number of Wasm instructions executed.
 
 ### Wasm Func Trace
-A stack of wasm function invocations in order to execute this
+A stack of Wasm function invocations in order to execute this
 QuickJS opcode. This provides a detailed breakdown of where the engine is
 spending the most fuel when executing a quickjs opcode. The value for this field
-is a list of "wasm execution markers" separated by "|". Each wasm execution
+is a list of Wasm execution markers" separated by "|". Each Wasm execution
 marker has the format wasm_func_id:[S|E]:c_fuel. [S|E] marks the start/end of
-the wasm function, c_fuel marks the cumulative fuel level, relative to the start
+the Wasm function, c_fuel marks the cumulative fuel level, relative to the start
 of this quickjs opcode execution.
 
 Certain values of the "opcode" column represent special events. When opcode
-= "00", it signifies wasm engine overhead that cannot be attributed to any
+= "00", it signifies Wasm engine overhead that cannot be attributed to any
 quickjs opcode. When opcode = "START|END", it represents the profiled
 invocation/return of js functions.
 
 ## How to generate trace file
 
-To generate a dynamic trace, you need to first create a static wasm binary with Javy, with:
+To generate a dynamic trace, you need to first create a static Wasm binary with Javy, with:
 
 `javy build -C dynamic=n file_to_js`
 
