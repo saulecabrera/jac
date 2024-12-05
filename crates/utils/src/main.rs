@@ -2,6 +2,8 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 use javy::{Config, Runtime};
 use parsetrace::trace;
+use std::fs::File;
+use std::io::Write;
 use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
@@ -39,7 +41,7 @@ pub struct TraceOptions {
     /// The directory and file where to place the report.
     /// Defaults to `trace_out.txt`
     #[arg(short = 'o', required = false, default_value = "trace_out.txt")]
-    pub out: Option<PathBuf>,
+    pub out: PathBuf,
 }
 
 #[derive(Debug, Parser)]
@@ -51,11 +53,14 @@ fn main() -> Result<()> {
     match &args.command {
         Command::Trace(opts) => {
             let bytecode = compile(&opts.input)?;
-            let raw_trace = std::fs::read(opts.trace)?;
+            let raw_trace = std::fs::read_to_string(&opts.trace)?;
             let report = trace(&bytecode, &raw_trace)?;
-            std::fs::write(opts.out, &report)?;
+            let mut file = File::create(&opts.out)?;
+            for line in report {
+                file.write_all(line.as_bytes())?;
+            }
         }
-        Command::Print(opts) => {}
+        Command::Print(_) => {}
     }
 
     Ok(())
@@ -63,9 +68,13 @@ fn main() -> Result<()> {
 
 /// Compile JS source to bytecode.
 fn compile(js: &PathBuf) -> Result<Vec<u8>> {
-    let source = std::fs::read(js)?;
+    let source = std::fs::read_to_string(js)?;
     let config = Config::default();
     let runtime = Runtime::new(config)?;
-    let name = js.file_name().unwrap_or("index.js");
-    runtime.compile_to_bytecode(&name, source)
+    let name = js
+        .file_name()
+        .map(|s| s.to_str())
+        .flatten()
+        .unwrap_or_else(|| "index.js");
+    runtime.compile_to_bytecode(&name, &source)
 }
