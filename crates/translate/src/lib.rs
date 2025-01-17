@@ -164,7 +164,7 @@ impl<'data> TranslationBuilder<'data> {
 
     /// Parses, validates and converts QuickJS bytecode to an in-memory
     /// representation of a JavaScript module.
-    pub fn translate(mut self, buffer: &'data [u8]) -> Result<Translation> {
+    pub fn translate(mut self, buffer: &'data [u8]) -> Result<Translation<'data>> {
         for payload in Parser::new().parse_buffer(buffer) {
             match payload? {
                 Payload::Header(h) => self.translation.header = h,
