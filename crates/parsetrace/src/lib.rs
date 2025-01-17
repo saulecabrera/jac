@@ -14,7 +14,7 @@ mod utils;
 /// Produces a human readable report from QuickJS bytecode and a raw execution
 /// trace.
 pub fn trace(bytecode: &[u8], raw_trace: &str) -> Result<Vec<String>> {
-    let mut builder = TranslationBuilder::new();
+    let builder = TranslationBuilder::new();
     let translation = builder.translate(bytecode)?;
     let trace_parser = ProfileTraceParser::new(raw_trace, &translation)?;
     Ok(trace_parser.report_trace().unwrap_or_default())

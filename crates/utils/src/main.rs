@@ -6,6 +6,8 @@ use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 
+mod printer;
+
 #[derive(Debug, Parser)]
 #[command(
     name = "jac-utils",
@@ -45,7 +47,11 @@ pub struct TraceOptions {
 }
 
 #[derive(Debug, Parser)]
-pub struct PrintOptions {}
+pub struct PrintOptions {
+    /// Path to the JavaScript input file.
+    #[arg(value_name = "JS", required = true)]
+    pub input: PathBuf,
+}
 
 fn main() -> Result<()> {
     let args = Cli::parse();
@@ -60,7 +66,10 @@ fn main() -> Result<()> {
                 file.write_all(line.as_bytes())?;
             }
         }
-        Command::Print(_) => {}
+        Command::Print(opts) => {
+            let bytecode = compile(&opts.input)?;
+            printer::print(&bytecode)?;
+        }
     }
 
     Ok(())
