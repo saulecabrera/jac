@@ -183,6 +183,252 @@ impl Printer {
             }
             GetRefValue => write!(self.writer, "GetRefValue"),
             PutRefValue => write!(self.writer, "PutRefValue"),
+            DefineVar { flags, atom } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "DefineVar {} {}", imm, flags)
+            }
+            CheckDefineVar { flags, atom } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "CheckDefineVar {} {}", imm, flags)
+            }
+            DefineFunc { flags, atom } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "DefineFunc {} {}", imm, flags)
+            }
+            GetField { atom } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "GetField {}", imm)
+            }
+            GetField2 { atom } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "GetField2 {}", imm)
+            }
+            PutField { atom } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "PutField {}", imm)
+            }
+            GetPrivateField => write!(self.writer, "GetPrivateField"),
+            PutPrivateField => write!(self.writer, "PutPrivateField"),
+            DefinePrivateField => write!(self.writer, "DefinePrivateField"),
+            GetArrayEl => write!(self.writer, "GetArrayEl"),
+            GetArrayEl2 => write!(self.writer, "GetArrayEl2"),
+            PutArrayEl => write!(self.writer, "PutArrayEl"),
+            GetSuperValue => write!(self.writer, "GetSuperValue"),
+            PutSuperValue => write!(self.writer, "PutSuperValue"),
+            DefineField { atom } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "DefineField {}", imm)
+            }
+            SetName { atom } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "SetName {}", imm)
+            }
+            SetNameComputed => write!(self.writer, "SetNameComputed"),
+            SetProto => write!(self.writer, "SetProto"),
+            SetHomeObject => write!(self.writer, "SetHomeObject"),
+            DefineArrayEl => write!(self.writer, "DefineArrayEl"),
+            Append => write!(self.writer, "Append"),
+            CopyDataProperties { mask } => write!(self.writer, "CopyDataProperties {}", mask),
+            DefineMethod { atom, flags } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "DefineMethod {} {}", imm, flags)
+            }
+            DefineMethodComputed { flags } => write!(self.writer, "DefineMethodComputed {}", flags),
+            DefineClass { flags, atom } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "DefineClass {} {}", imm, flags)
+            }
+            DefineClassComputed { flags, atom } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "DefineClassComputed {} {}", imm, flags)
+            }
+            GetLoc { index } => write!(self.writer, "GetLoc {}", index.as_u32()),
+            PutLoc { index } => write!(self.writer, "PutLoc {}", index.as_u32()),
+            SetLoc { index } => write!(self.writer, "SetLoc {}", index.as_u32()),
+            GetArg { index } => write!(self.writer, "GetArg {}", index.as_u32()),
+            PutArg { index } => write!(self.writer, "PutArg {}", index.as_u32()),
+            SetArg { index } => write!(self.writer, "SetArg {}", index.as_u32()),
+            GetVarRef { index } => {
+                let closure_var = translation.resolve_closure_var_name(func.index, index);
+                write!(self.writer, "GetVarRef {}", closure_var)
+            }
+            PutVarRef { index } => {
+                let closure_var = translation.resolve_closure_var_name(func.index, index);
+                write!(self.writer, "PutVarRef {}", closure_var)
+            }
+            SetVarRef { index } => {
+                let closure_var = translation.resolve_closure_var_name(func.index, index);
+                write!(self.writer, "SetVarRef {}", closure_var)
+            }
+            SetLocUninit { index } => write!(self.writer, "SetLocUninit {}", index.as_u32()),
+            GetLocCheck { index } => write!(self.writer, "GetLocCheck {}", index.as_u32()),
+            PutLocCheck { index } => write!(self.writer, "PutLocCheck {}", index.as_u32()),
+            PutLocCheckInit { index } => write!(self.writer, "PutLocCheckInit {}", index.as_u32()),
+            GetLocCheckThis { index } => write!(self.writer, "GetLocCheckThis {}", index.as_u32()),
+            GetVarRefCheck { index } => {
+                let closure_var = translation.resolve_closure_var_name(func.index, index);
+                write!(self.writer, "GetVarRefCheck {}", closure_var)
+            }
+            PutVarRefCheck { index } => {
+                let closure_var = translation.resolve_closure_var_name(func.index, index);
+                write!(self.writer, "PutVarRefCheck {}", closure_var)
+            }
+            PutVarRefCheckInit { index } => {
+                let closure_var = translation.resolve_closure_var_name(func.index, index);
+                write!(self.writer, "PutVarRefCheckInit {}", closure_var)
+            }
+            CloseLoc { index } => write!(self.writer, "CloseLoc {}", index),
+            IfFalse { offset } => write!(self.writer, "IfFalse {}", offset),
+            IfTrue { offset } => write!(self.writer, "IfTrue {}", offset),
+            GoTo { offset } => write!(self.writer, "GoTo {}", offset),
+            Catch { diff } => write!(self.writer, "Catch {}", diff),
+            GoSub { diff } => write!(self.writer, "GoSub {}", diff),
+            Ret => write!(self.writer, "Ret"),
+            NipCatch => write!(self.writer, "NipCatch"),
+            ToObject => write!(self.writer, "ToObject"),
+            ToPropKey => write!(self.writer, "ToPropKey"),
+            ToPropKey2 => write!(self.writer, "ToPropKey2"),
+            WithGetVar {
+                atom,
+                diff,
+                is_with,
+            } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "WithGetVar {} {} {}", imm, diff, is_with)
+            }
+            WithPutVar {
+                atom,
+                diff,
+                is_with,
+            } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "WithPutVar {} {} {}", imm, diff, is_with)
+            }
+            WithDeleteVar {
+                atom,
+                diff,
+                is_with,
+            } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "WithDeleteVar {} {} {}", imm, diff, is_with)
+            }
+            WithMakeRef {
+                atom,
+                diff,
+                is_with,
+            } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "WithMakeRef {} {} {}", imm, diff, is_with)
+            }
+            WithGetRef {
+                atom,
+                diff,
+                is_with,
+            } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "WithGetRef {} {} {}", imm, diff, is_with)
+            }
+            WithGetRefUndef {
+                atom,
+                diff,
+                is_with,
+            } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "WithGetRefUndef {} {} {}", imm, diff, is_with)
+            }
+            MakeLocRef { atom, idx } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "MakeLocRef {} {}", imm, idx)
+            }
+            MakeArgRef { atom, idx } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "MakeArgRef {} {}", imm, idx)
+            }
+            MakeVarRefRef { atom, idx } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "MakeVarRefRef {} {}", imm, idx)
+            }
+            MakeVarRef { atom } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "MakeVarRef {}", imm)
+            }
+            ForInStart => write!(self.writer, "ForInStart"),
+            ForOfStart => write!(self.writer, "ForOfStart"),
+            ForAwaitOfStart => write!(self.writer, "ForAwaitOfStart"),
+            ForInNext => write!(self.writer, "ForInNext"),
+            ForOfNext { offset } => write!(self.writer, "ForOfNext {}", offset),
+            IteratorCheckObject => write!(self.writer, "IteratorCheckObject"),
+            IteratorGetValueDone => write!(self.writer, "IteratorGetValueDone"),
+            IteratorClose => write!(self.writer, "IteratorClose"),
+            IteratorNext => write!(self.writer, "IteratorNext"),
+            IteratorCall { flags } => write!(self.writer, "IteratorCall {}", flags),
+            InitialYield => write!(self.writer, "InitialYield"),
+            Yield => write!(self.writer, "Yield"),
+            YieldStar => write!(self.writer, "YieldStar"),
+            AsyncYieldStar => write!(self.writer, "AsyncYieldStar"),
+            Await => write!(self.writer, "Await"),
+            Neg => write!(self.writer, "Neg"),
+            Plus => write!(self.writer, "Plus"),
+            Dec => write!(self.writer, "Dec"),
+            Inc => write!(self.writer, "Inc"),
+            PostDec => write!(self.writer, "PostDec"),
+            PostInc => write!(self.writer, "PostInc"),
+            DecLoc { index } => write!(self.writer, "DecLoc {}", index.as_u32()),
+            IncLoc { index } => write!(self.writer, "IncLoc {}", index.as_u32()),
+            AddLoc { index } => write!(self.writer, "AddLoc {}", index.as_u32()),
+            Not => write!(self.writer, "Not"),
+            LNot => write!(self.writer, "LNot"),
+            TypeOf => write!(self.writer, "TypeOf"),
+            Delete => write!(self.writer, "Delete"),
+            DeleteVar { atom } => {
+                let imm = translation.resolve_atom_name(atom);
+                write!(self.writer, "DeleteVar {}", imm)
+            }
+            Mul => write!(self.writer, "Mul"),
+            Div => write!(self.writer, "Div"),
+            Mod => write!(self.writer, "Mod"),
+            Add => write!(self.writer, "Add"),
+            Sub => write!(self.writer, "Sub"),
+            Pow => write!(self.writer, "Pow"),
+            Shl => write!(self.writer, "Shl"),
+            Sar => write!(self.writer, "Sar"),
+            Shr => write!(self.writer, "Shr"),
+            Lt => write!(self.writer, "Lt"),
+            Lte => write!(self.writer, "Lte"),
+            Gt => write!(self.writer, "Gt"),
+            Gte => write!(self.writer, "Gte"),
+            InstanceOf => write!(self.writer, "InstanceOf"),
+            In => write!(self.writer, "In"),
+            Eq => write!(self.writer, "Eq"),
+            Neq => write!(self.writer, "Neq"),
+            StrictEq => write!(self.writer, "StrictEq"),
+            StrictNeq => write!(self.writer, "StrictNeq"),
+            And => write!(self.writer, "And"),
+            Xor => write!(self.writer, "Xor"),
+            Or => write!(self.writer, "Or"),
+            UndefOrNull => write!(self.writer, "UndefOrNull"),
+            PrivateIn => write!(self.writer, "PrivateIn"),
+            MulPow10 => write!(self.writer, "MulPow10"),
+            MathMod => write!(self.writer, "MathMod"),
+            Nop => write!(self.writer, "Nop"),
+            PushMinus1 => write!(self.writer, "PushMinus1"),
+            Push0 => write!(self.writer, "Push0"),
+            Push1 => write!(self.writer, "Push1"),
+            Push2 => write!(self.writer, "Push2"),
+            Push3 => write!(self.writer, "Push3"),
+            Push4 => write!(self.writer, "Push4"),
+            Push5 => write!(self.writer, "Push5"),
+            Push6 => write!(self.writer, "Push6"),
+            Push7 => write!(self.writer, "Push7"),
+            PushI8 { val } => write!(self.writer, "PushI8 {}", val),
+            PushI16 { val } => write!(self.writer, "PushI16 {}", val),
+            PushConst8 { index } => write!(self.writer, "PushConst8 {}", index),
+            // FIXME: Should be able to figure out the closure name.
+            FClosure8 { index } => write!(self.writer, "FClosure8 {}", index.as_u32()),
+            PushEmptyString => write!(self.writer, "PushEmptyString"),
+            GetLoc8 { index } => write!(self.writer, "GetLoc8 {}", index.as_u32()),
+            PutLoc8 { index } => write!(self.writer, "PutLoc8 {}", index.as_u32()),
+            SetLoc8 { index } => write!(self.writer, "SetLoc8 {}", index.as_u32()),
 
             _ => write!(&mut self.writer, "Op"),
         }?;
