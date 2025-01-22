@@ -72,6 +72,7 @@ impl Printer {
             self.print_op(op.1, &translation, &func)?;
             self.nl()?;
         }
+        self.nl()?;
 
         Ok(())
     }
