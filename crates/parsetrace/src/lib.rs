@@ -3,13 +3,22 @@ use std::collections::HashMap;
 use anyhow::Result;
 use jac_translate::{
     quickpars::{ClosureVarIndex, FuncIndex, LocalIndex},
-    Translation,
+    Translation, TranslationBuilder,
 };
 use quickpars::Opcode;
 use trace::BytecodeTraceEvent;
 use utils::{generate_trace, match_all_functions, recover_bytecodes};
 mod trace;
 mod utils;
+
+/// Produces a human readable report from QuickJS bytecode and a raw execution
+/// trace.
+pub fn trace(bytecode: &[u8], raw_trace: &str) -> Result<Vec<String>> {
+    let builder = TranslationBuilder::new();
+    let translation = builder.translate(bytecode)?;
+    let trace_parser = ProfileTraceParser::new(raw_trace, &translation)?;
+    Ok(trace_parser.report_trace().unwrap_or_default())
+}
 
 /// Represents all the profiled opcode bytes for a single function, ordered by their offset.
 /// Each element is a tuple of (opcode_offset, opcode_byte).
