@@ -64,6 +64,22 @@ impl Printer {
         let func_name = translation.resolve_atom_name(func.header.name_index);
         write!(&mut self.writer, "func: {}", func_name).map_err(|e| anyhow!("{}", e))?;
         self.nl()?;
+        write!(
+            &mut self.writer,
+            "Defined arg count: {}",
+            func.header.defined_arg_count
+        )?;
+        self.nl()?;
+        write!(&mut self.writer, "Arg count: {}", func.header.arg_count)?;
+        self.nl()?;
+        write!(&mut self.writer, "Var count: {}", func.header.local_count)?;
+        self.nl()?;
+        write!(&mut self.writer, "Local count: {}", func.header.local_count)?;
+        self.nl()?;
+        self.nl()?;
+
+        write!(&mut self.writer, "Body")?;
+        self.nl()?;
 
         let mut reader = func.operators.clone();
 

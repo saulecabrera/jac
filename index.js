@@ -1,6 +1,5 @@
-console.log('hello')
-console.log(main());
-
-function main() {
-  return 1 + 1;
+let flag = true;
+while (flag) {
+  console.log('my loop' );
+  flag = false;
 }
