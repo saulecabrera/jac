@@ -69,6 +69,8 @@ impl Printer {
 
         while !reader.done() {
             let op = Opcode::from_reader(&mut reader)?;
+            write!(self.writer, "{:#01x}", op.0)?;
+            self.space2()?;
             self.print_op(op.1, &translation, &func)?;
             self.nl()?;
         }
