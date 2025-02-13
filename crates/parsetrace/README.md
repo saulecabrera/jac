@@ -1,4 +1,4 @@
-# parsetrace
+# ParseTrace
 
 `parsetrace` is a crate containing functionalities to parse, manipulate, and
 pretty-print dynamic execution traces for
@@ -14,20 +14,25 @@ The trace file is a CSV file. Each row represent a single QuickJS opcode
 execution. The file has the following columns:
 
 ### Function ID
+
 A dynamically assigned id for each source js function, only used
 to distinguish separate function/closure executions.
 
 ### PC Offset
+
 The detected opcode offset, w.r.t. the function start.
 
 ### Opcode
+
 Value of the QuickJS operator
 
 ### Cost
+
 The amount of fuel used to execute this opcode. Fuel roughly correlates
 to number of Wasm instructions executed.
 
 ### Wasm Func Trace
+
 A stack of Wasm function invocations in order to execute this
 QuickJS opcode. This provides a detailed breakdown of where the engine is
 spending the most fuel when executing a quickjs opcode. The value for this field
@@ -43,23 +48,32 @@ invocation/return of js functions.
 
 ## How to generate trace file
 
-To generate a dynamic trace, you need to first create a static Wasm binary with Javy, with:
+To generate a dynamic trace, you need to first create a static Wasm binary with
+Javy, with:
 
-`javy build -C dynamic=n file_to_js`
+`javy build -C dynamic=n file_to_js -o index.wasm`
 
 Then, run the module in Wizard with `profile_bytecode` monitor enabled:
 
-`wizeng '--monitors=profile_bytecode{output_folder=profile_result}' static_js_module.wasm`
+`wizeng '--monitors=profile_bytecode{output_folder=profile_result}' index.wasm`
 
-`profile_result` is an optional parameter to store the dynamic trace results. 3 files are generated, but only the `*_guest_trace.csv` file is used by this crate.
+`profile_result` is an optional parameter to store the dynamic trace results.
+3 files are generated, but only the `*_guest_trace.csv` file is used by this
+crate.
 
 ## Output report
 
-This crate is intended to be used as a library, to match the recovered dynamic trace events to parsed bytecodes from the source file. The printed report serves as an example of the programmatic access this crate provides. To generate a human readable report, run:
+This crate is intended to be used as a library, to match the recovered dynamic
+trace events to parsed bytecodes from the source file. The printed report serves
+as an example of the programmatic access this crate provides. To generate
+a human readable report, run:
 
-`parsetrace PATH_TO_JS PATH_TO_TRACE PATH_TO_OUTPUT`
+`cargo run -p jac-utils -- trace <JS> --trace <TRACE_FILE> -o OUTPUT`
 
-The report annotates each profiled opcode with its canonical name, includes pc offset, fuel consumption, and opcode immediate values, when applicable. The proper function names are also recovered from the quickjs bytecode, and function calls are properly indented. Below is an example snippet of the report:
+The report annotates each profiled opcode with its canonical name, includes pc
+offset, fuel consumption, and opcode immediate values, when applicable. The
+proper function names are also recovered from the quickjs bytecode, and function
+calls are properly indented. Below is an example snippet of the report:
 
 ```
 ....
