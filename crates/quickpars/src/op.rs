@@ -4,7 +4,7 @@ use anyhow::{bail, Result};
 
 /// A QuickJS operator code.
 #[repr(u8)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum Opcode {
     /// A marker, never emitted.
     Invalid = 0,

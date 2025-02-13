@@ -196,111 +196,172 @@ impl<'a> ProfileTraceParser<'a> {
 
 pub fn report(pc: u32, func_index: FuncIndex, translation: &Translation, op: &Opcode) -> String {
     use Opcode::*;
+    dbg!(&op);
     format!(
         "{}: {}",
         pc,
         match *op {
-            FClosure { index } => translation.resolve_func_name(func_index, Some(index)),
-            PushAtomValue { atom } => translation.resolve_atom_name(atom),
-            PrivateSymbol { atom } => translation.resolve_atom_name(atom),
-            ThrowError { atom, .. } => translation.resolve_atom_name(atom),
-            CheckVar { atom } => translation.resolve_atom_name(atom),
-            GetVarUndef { atom } => translation.resolve_atom_name(atom),
-            GetVar { atom } => translation.resolve_atom_name(atom),
-            PutVar { atom } => translation.resolve_atom_name(atom),
-            PutVarInit { atom } => translation.resolve_atom_name(atom),
-            PutVarStrict { atom } => translation.resolve_atom_name(atom),
-            DefineVar { atom, .. } => translation.resolve_atom_name(atom),
-            CheckDefineVar { atom, .. } => translation.resolve_atom_name(atom),
-            DefineFunc { atom, .. } => translation.resolve_atom_name(atom),
-            GetField { atom } => translation.resolve_atom_name(atom),
-            GetField2 { atom } => translation.resolve_atom_name(atom),
-            PutField { atom } => translation.resolve_atom_name(atom),
-            DefineField { atom } => translation.resolve_atom_name(atom),
-            SetName { atom } => translation.resolve_atom_name(atom),
-            DefineMethod { atom, .. } => translation.resolve_atom_name(atom),
-            DefineMethodComputed { .. } => "DefineComputedMethod",
-            DefineClass { atom, .. } => translation.resolve_atom_name(atom),
-            DefineClassComputed { atom, .. } => translation.resolve_atom_name(atom),
-            GetLoc { index } => translation.resolve_func_local_name(func_index, index),
-            PutLoc { index } => translation.resolve_func_local_name(func_index, index),
-            SetLoc { index } => translation.resolve_func_local_name(func_index, index),
-            GetArg { index } => translation.resolve_func_arg_name(func_index, index),
-            PutArg { index } => translation.resolve_func_arg_name(func_index, index),
-            SetArg { index } => translation.resolve_func_arg_name(func_index, index),
-            GetVarRef { index } => translation.resolve_closure_var_name(func_index, index),
-            PutVarRef { index } => translation.resolve_closure_var_name(func_index, index),
-            SetVarRef { index } => translation.resolve_closure_var_name(func_index, index),
-            SetLocUninit { index } => translation.resolve_func_local_name(func_index, index),
-            GetLocCheck { index } => translation.resolve_func_local_name(func_index, index),
-            PutLocCheck { index } => translation.resolve_func_local_name(func_index, index),
-            PutLocCheckInit { index } => translation.resolve_func_local_name(func_index, index),
-            GetLocCheckThis { index } => translation.resolve_func_local_name(func_index, index),
-            GetVarRefCheck { index } => translation.resolve_closure_var_name(func_index, index),
-            PutVarRefCheck { index } => translation.resolve_closure_var_name(func_index, index),
-            PutVarRefCheckInit { index } => translation.resolve_closure_var_name(func_index, index),
-            WithGetVar { atom, .. } => translation.resolve_atom_name(atom),
-            WithPutVar { atom, .. } => translation.resolve_atom_name(atom),
-            WithDeleteVar { atom, .. } => translation.resolve_atom_name(atom),
-            WithMakeRef { atom, .. } => translation.resolve_atom_name(atom),
-            WithGetRef { atom, .. } => translation.resolve_atom_name(atom),
-            WithGetRefUndef { atom, .. } => translation.resolve_atom_name(atom),
-            MakeLocRef { atom, .. } => translation.resolve_atom_name(atom),
-            MakeArgRef { atom, .. } => translation.resolve_atom_name(atom),
-            MakeVarRefRef { atom, .. } => translation.resolve_atom_name(atom),
-            MakeVarRef { atom } => translation.resolve_atom_name(atom),
-            DecLoc { index } => translation.resolve_func_local_name(func_index, index),
-            IncLoc { index } => translation.resolve_func_local_name(func_index, index),
-            AddLoc { index } => translation.resolve_func_local_name(func_index, index),
-            FClosure8 { index } => translation.resolve_func_name(func_index, Some(index)),
-            GetLoc8 { index } => translation.resolve_func_local_name(func_index, index),
-            PutLoc8 { index } => translation.resolve_func_local_name(func_index, index),
-            SetLoc8 { index } => translation.resolve_func_local_name(func_index, index),
+            FClosure { index } => translation
+                .resolve_func_name(func_index, Some(index))
+                .to_string(),
+            PushAtomValue { atom } => translation.resolve_atom_name(atom).to_string(),
+            PrivateSymbol { atom } => translation.resolve_atom_name(atom).to_string(),
+            ThrowError { atom, .. } => translation.resolve_atom_name(atom).to_string(),
+            CheckVar { atom } => translation.resolve_atom_name(atom).to_string(),
+            GetVarUndef { atom } => translation.resolve_atom_name(atom).to_string(),
+            GetVar { atom } => translation.resolve_atom_name(atom).to_string(),
+            PutVar { atom } => translation.resolve_atom_name(atom).to_string(),
+            PutVarInit { atom } => translation.resolve_atom_name(atom).to_string(),
+            PutVarStrict { atom } => translation.resolve_atom_name(atom).to_string(),
+            DefineVar { atom, .. } => translation.resolve_atom_name(atom).to_string(),
+            CheckDefineVar { atom, .. } => translation.resolve_atom_name(atom).to_string(),
+            DefineFunc { atom, .. } => translation.resolve_atom_name(atom).to_string(),
+            GetField { atom } => translation.resolve_atom_name(atom).to_string(),
+            GetField2 { atom } => translation.resolve_atom_name(atom).to_string(),
+            PutField { atom } => translation.resolve_atom_name(atom).to_string(),
+            DefineField { atom } => translation.resolve_atom_name(atom).to_string(),
+            SetName { atom } => translation.resolve_atom_name(atom).to_string(),
+            DefineMethod { atom, .. } => translation.resolve_atom_name(atom).to_string(),
+            DefineMethodComputed { .. } => "DefineComputedMethod".to_string(),
+            DefineClass { atom, .. } => translation.resolve_atom_name(atom).to_string(),
+            DefineClassComputed { atom, .. } => translation.resolve_atom_name(atom).to_string(),
+            GetLoc { index } => translation
+                .resolve_func_local_name(func_index, index)
+                .to_string(),
+            PutLoc { index } => translation
+                .resolve_func_local_name(func_index, index)
+                .to_string(),
+            SetLoc { index } => translation
+                .resolve_func_local_name(func_index, index)
+                .to_string(),
+            GetArg { index } => translation
+                .resolve_func_arg_name(func_index, index)
+                .to_string(),
+            PutArg { index } => translation
+                .resolve_func_arg_name(func_index, index)
+                .to_string(),
+            SetArg { index } => translation
+                .resolve_func_arg_name(func_index, index)
+                .to_string(),
+            GetVarRef { index } => translation
+                .resolve_closure_var_name(func_index, index)
+                .to_string(),
+            PutVarRef { index } => translation
+                .resolve_closure_var_name(func_index, index)
+                .to_string(),
+            SetVarRef { index } => translation
+                .resolve_closure_var_name(func_index, index)
+                .to_string(),
+            SetLocUninit { index } => translation
+                .resolve_func_local_name(func_index, index)
+                .to_string(),
+            GetLocCheck { index } => translation
+                .resolve_func_local_name(func_index, index)
+                .to_string(),
+            PutLocCheck { index } => translation
+                .resolve_func_local_name(func_index, index)
+                .to_string(),
+            PutLocCheckInit { index } => translation
+                .resolve_func_local_name(func_index, index)
+                .to_string(),
+            GetLocCheckThis { index } => translation
+                .resolve_func_local_name(func_index, index)
+                .to_string(),
+            GetVarRefCheck { index } => translation
+                .resolve_closure_var_name(func_index, index)
+                .to_string(),
+            PutVarRefCheck { index } => translation
+                .resolve_closure_var_name(func_index, index)
+                .to_string(),
+            PutVarRefCheckInit { index } => translation
+                .resolve_closure_var_name(func_index, index)
+                .to_string(),
+            WithGetVar { atom, .. } => translation.resolve_atom_name(atom).to_string(),
+            WithPutVar { atom, .. } => translation.resolve_atom_name(atom).to_string(),
+            WithDeleteVar { atom, .. } => translation.resolve_atom_name(atom).to_string(),
+            WithMakeRef { atom, .. } => translation.resolve_atom_name(atom).to_string(),
+            WithGetRef { atom, .. } => translation.resolve_atom_name(atom).to_string(),
+            WithGetRefUndef { atom, .. } => translation.resolve_atom_name(atom).to_string(),
+            MakeLocRef { atom, .. } => translation.resolve_atom_name(atom).to_string(),
+            MakeArgRef { atom, .. } => translation.resolve_atom_name(atom).to_string(),
+            MakeVarRefRef { atom, .. } => translation.resolve_atom_name(atom).to_string(),
+            MakeVarRef { atom } => translation.resolve_atom_name(atom).to_string(),
+            DecLoc { index } => translation
+                .resolve_func_local_name(func_index, index)
+                .to_string(),
+            IncLoc { index } => translation
+                .resolve_func_local_name(func_index, index)
+                .to_string(),
+            AddLoc { index } => translation
+                .resolve_func_local_name(func_index, index)
+                .to_string(),
+            FClosure8 { index } => translation
+                .resolve_func_name(func_index, Some(index))
+                .to_string(),
+            GetLoc8 { index } => translation
+                .resolve_func_local_name(func_index, index)
+                .to_string(),
+            PutLoc8 { index } => translation
+                .resolve_func_local_name(func_index, index)
+                .to_string(),
+            SetLoc8 { index } => translation
+                .resolve_func_local_name(func_index, index)
+                .to_string(),
             GetLoc0 | GetLoc1 | GetLoc2 | GetLoc3 => {
                 let index = op.discriminant() - 199 as u8;
-                translation.resolve_func_local_name(func_index, LocalIndex::from_u32(index as _))
+                translation
+                    .resolve_func_local_name(func_index, LocalIndex::from_u32(index as _))
+                    .to_string()
             }
             PutLoc0 | PutLoc1 | PutLoc2 | PutLoc3 => {
                 let index = op.discriminant() - 203 as u8;
-                translation.resolve_func_local_name(func_index, LocalIndex::from_u32(index as _))
+                translation
+                    .resolve_func_local_name(func_index, LocalIndex::from_u32(index as _))
+                    .to_string()
             }
             SetLoc0 | SetLoc1 | SetLoc2 | SetLoc3 => {
                 let index = op.discriminant() - 207 as u8;
-                translation.resolve_func_local_name(func_index, LocalIndex::from_u32(index as _))
+                translation
+                    .resolve_func_local_name(func_index, LocalIndex::from_u32(index as _))
+                    .to_string()
             }
             GetArg0 | GetArg1 | GetArg2 | GetArg3 => {
                 let index = op.discriminant() - 211 as u8;
-                translation.resolve_func_arg_name(func_index, LocalIndex::from_u32(index as _))
+                translation
+                    .resolve_func_arg_name(func_index, LocalIndex::from_u32(index as _))
+                    .to_string()
             }
             PutArg0 | PutArg1 | PutArg2 | PutArg3 => {
                 let index = op.discriminant() - 215 as u8;
-                translation.resolve_func_arg_name(func_index, LocalIndex::from_u32(index as _))
+                translation
+                    .resolve_func_arg_name(func_index, LocalIndex::from_u32(index as _))
+                    .to_string()
             }
             SetArg0 | SetArg1 | SetArg2 | SetArg3 => {
                 let index = op.discriminant() - 219 as u8;
-                translation.resolve_func_arg_name(func_index, LocalIndex::from_u32(index as _))
+                translation
+                    .resolve_func_arg_name(func_index, LocalIndex::from_u32(index as _))
+                    .to_string()
             }
             GetVarRef0 | GetVarRef1 | GetVarRef2 | GetVarRef3 => {
                 let index = op.discriminant() - 223 as u8;
-                translation.resolve_func_arg_name(func_index, LocalIndex::from_u32(index as _))
+                translation
+                    .resolve_closure_var_name(func_index, ClosureVarIndex::from_u32(index as _))
+                    .to_string()
             }
             PutVarRef0 | PutVarRef1 | PutVarRef2 | PutVarRef3 => {
                 let index = op.discriminant() - 227 as u8;
                 translation
                     .resolve_closure_var_name(func_index, ClosureVarIndex::from_u32(index as _))
+                    .to_string()
             }
             SetVarRef0 | SetVarRef1 | SetVarRef2 | SetVarRef3 => {
                 let index = op.discriminant() - 231 as u8;
                 translation
                     .resolve_closure_var_name(func_index, ClosureVarIndex::from_u32(index as _))
+                    .to_string()
             }
-            _ => unreachable!(), // _ => format!("{:?}", op),
+            op => format!("{:?}", op),
         }
     )
 }
-
-// impl fmt::Debug for ProfileTraceParser<'_> {
-//     fn fmt(&op, f: &mut Formatter<'_>) -> std::fmt::Result {
-//         self.translation.fmt(f)
-//     }
-// }
