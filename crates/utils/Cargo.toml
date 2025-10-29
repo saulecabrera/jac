@@ -10,4 +10,4 @@ clap = { version = "4.5.22", features = ["derive"] }
 jac-translate = { path = "../translate/" }
 parsetrace = { path = "../parsetrace/" }
 anyhow = { workspace = true }
-javy = "3.0.1"
+javy = "5.1.0"

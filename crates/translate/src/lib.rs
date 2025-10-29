@@ -27,7 +27,7 @@ pub struct Translation<'data> {
 const CONSTANT_POOL_OFFSET: u32 = 1;
 
 impl<'data> Translation<'data> {
-    // TODO: Asumes a single module.
+    // FIXME: Asumes a single module.
     /// Resolves a function name from a given [`FuncIndex`].
     pub fn resolve_func_name(
         &self,
@@ -35,6 +35,7 @@ impl<'data> Translation<'data> {
         pool_index: Option<ConstantPoolIndex>,
     ) -> &str {
         let index = match pool_index {
+            // TODO: Overflow
             Some(i) => FuncIndex::from_u32(i.as_u32() + index.as_u32() + CONSTANT_POOL_OFFSET),
             None => index,
         };

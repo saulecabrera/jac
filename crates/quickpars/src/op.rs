@@ -268,14 +268,13 @@ pub enum Opcode {
         index: u16,
     },
     IfFalse {
-        // amount of forward jump bytes
-        offset: i32,
+        offset: u32,
     },
     IfTrue {
-        offset: i32,
+        offset: u32,
     },
     GoTo {
-        offset: i32,
+        offset: u32,
     },
     Catch {
         diff: u32,
@@ -338,7 +337,7 @@ pub enum Opcode {
     ForAwaitOfStart,
     ForInNext,
     ForOfNext {
-        offset: i8,
+        offset: u32,
     },
     IteratorCheckObject,
     IteratorGetValueDone,
@@ -471,16 +470,16 @@ pub enum Opcode {
     SetVarRef3,
     GetLength,
     IfFalse8 {
-        offset: i8,
+        offset: u32,
     },
     IfTrue8 {
-        offset: i8,
+        offset: u32,
     },
     GoTo8 {
-        offset: i8,
+        offset: u32,
     },
     GoTo16 {
-        offset: i16,
+        offset: u32,
     },
     Call0,
     Call1,
@@ -496,6 +495,7 @@ impl Opcode {
     /// reads an opcode, with immediates from a buffer, and returns the parsed opcode object.
     pub fn from_reader(reader: &mut BinaryReader<'_>) -> Result<(u32, Opcode)> {
         use Opcode::*;
+        // Start of the reader i.e., where the current operator starts.
         let pc = reader.offset as u32;
         let byte = reader.read_u8()?;
         let op = match byte {
@@ -727,15 +727,27 @@ impl Opcode {
             105 => CloseLoc {
                 index: reader.read_u16()?,
             },
-            106 => IfFalse {
-                offset: reader.read_u32()? as i32,
-            },
-            107 => IfTrue {
-                offset: reader.read_u32()? as i32,
-            },
-            108 => GoTo {
-                offset: reader.read_u32()? as i32,
-            },
+            106 => {
+                let offset = reader.read_u32()?;
+                let pc = reader.offset as u32;
+                IfFalse {
+                    offset: pc.checked_add(offset).unwrap(),
+                }
+            }
+            107 => {
+                let offset = reader.read_u32()?;
+                let pc = reader.offset as u32;
+                IfTrue {
+                    offset: pc.checked_add(offset).unwrap(),
+                }
+            }
+            108 => {
+                let offset = reader.read_u32()?;
+                let pc = reader.offset as u32;
+                GoTo {
+                    offset: pc.checked_add(offset).unwrap(),
+                }
+            }
             109 => Catch {
                 diff: reader.read_u32()?,
             },
@@ -807,9 +819,13 @@ impl Opcode {
             127 => ForOfStart,
             128 => ForAwaitOfStart,
             129 => ForInNext,
-            130 => ForOfNext {
-                offset: reader.read_u8()? as i8,
-            },
+            130 => {
+                let offset = reader.read_u8()? as u32;
+                let pc = reader.offset as u32;
+                ForOfNext {
+                    offset: pc.checked_add(offset).unwrap(),
+                }
+            }
             131 => IteratorCheckObject,
             132 => IteratorGetValueDone,
             133 => IteratorClose,
@@ -939,18 +955,37 @@ impl Opcode {
             233 => SetVarRef2,
             234 => SetVarRef3,
             235 => GetLength,
-            236 => IfFalse8 {
-                offset: reader.read_u8()? as i8,
-            },
-            237 => IfTrue8 {
-                offset: reader.read_u8()? as i8,
-            },
-            238 => GoTo8 {
-                offset: reader.read_u8()? as i8,
-            },
-            239 => GoTo16 {
-                offset: reader.read_u16()? as i16,
-            },
+            236 => {
+                dbg!("reader offset before {}", pc);
+                let offset = reader.read_u8()? as u32;
+                dbg!("reader offset after {}", reader.offset);
+                dbg!("bc ofset {}", offset);
+
+                IfFalse8 {
+                    offset: pc.checked_add(offset).unwrap(),
+                }
+            }
+            237 => {
+                let offset = reader.read_u8()? as u32;
+                let pc = reader.offset as u32;
+                IfTrue8 {
+                    offset: pc.checked_add(offset).unwrap(),
+                }
+            }
+            238 => {
+                let offset = reader.read_u8()? as u32;
+                let pc = reader.offset as u32;
+                GoTo8 {
+                    offset: pc.checked_add(offset).unwrap(),
+                }
+            }
+            239 => {
+                let offset = reader.read_u16()? as u32;
+                let pc = reader.offset as u32;
+                GoTo16 {
+                    offset: pc.checked_add(offset).unwrap(),
+                }
+            }
             240 => Call0,
             241 => Call1,
             242 => Call2,

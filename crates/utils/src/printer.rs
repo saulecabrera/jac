@@ -80,8 +80,6 @@ impl Printer {
     }
 
     /// Print an op code.
-    //
-    // TODO: Handle offsets.
     fn print_op(
         &mut self,
         op: Opcode,
@@ -427,7 +425,10 @@ impl Printer {
             PushI16 { val } => write!(self.writer, "PushI16 {}", val),
             PushConst8 { index } => write!(self.writer, "PushConst8 {}", index),
             // FIXME: Should be able to figure out the closure name.
-            FClosure8 { index } => write!(self.writer, "FClosure8 {}", index.as_u32()),
+            FClosure8 { index } => {
+                let closure = translation.resolve_func_name(func.index, Some(index));
+                write!(self.writer, "FClosure8 {}", closure)
+            }
             PushEmptyString => write!(self.writer, "PushEmptyString"),
             GetLoc8 { index } => write!(self.writer, "GetLoc8 {}", index.as_u32()),
             PutLoc8 { index } => write!(self.writer, "PutLoc8 {}", index.as_u32()),
