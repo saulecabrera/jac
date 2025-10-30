@@ -495,8 +495,9 @@ impl Opcode {
     /// reads an opcode, with immediates from a buffer, and returns the parsed opcode object.
     pub fn from_reader(reader: &mut BinaryReader<'_>) -> Result<(u32, Opcode)> {
         use Opcode::*;
-        // Start of the reader i.e., where the current operator starts.
+	// The start of the operator.
         let pc = reader.offset as u32;
+	// Reader is advanced 1 byte.
         let byte = reader.read_u8()?;
         let op = match byte {
             0 => Invalid,
@@ -728,22 +729,22 @@ impl Opcode {
                 index: reader.read_u16()?,
             },
             106 => {
-                let offset = reader.read_u32()?;
                 let pc = reader.offset as u32;
+                let offset = reader.read_u32()?;
                 IfFalse {
                     offset: pc.checked_add(offset).unwrap(),
                 }
             }
             107 => {
-                let offset = reader.read_u32()?;
                 let pc = reader.offset as u32;
+                let offset = reader.read_u32()?;
                 IfTrue {
                     offset: pc.checked_add(offset).unwrap(),
                 }
             }
             108 => {
-                let offset = reader.read_u32()?;
                 let pc = reader.offset as u32;
+                let offset = reader.read_u32()?;
                 GoTo {
                     offset: pc.checked_add(offset).unwrap(),
                 }
@@ -820,8 +821,8 @@ impl Opcode {
             128 => ForAwaitOfStart,
             129 => ForInNext,
             130 => {
-                let offset = reader.read_u8()? as u32;
                 let pc = reader.offset as u32;
+                let offset = reader.read_u8()? as u32;
                 ForOfNext {
                     offset: pc.checked_add(offset).unwrap(),
                 }
@@ -956,32 +957,29 @@ impl Opcode {
             234 => SetVarRef3,
             235 => GetLength,
             236 => {
-                dbg!("reader offset before {}", pc);
+		let pc = reader.offset as u32;
                 let offset = reader.read_u8()? as u32;
-                dbg!("reader offset after {}", reader.offset);
-                dbg!("bc ofset {}", offset);
-
                 IfFalse8 {
                     offset: pc.checked_add(offset).unwrap(),
                 }
             }
             237 => {
-                let offset = reader.read_u8()? as u32;
                 let pc = reader.offset as u32;
+                let offset = reader.read_u8()? as u32;
                 IfTrue8 {
                     offset: pc.checked_add(offset).unwrap(),
                 }
             }
             238 => {
-                let offset = reader.read_u8()? as u32;
                 let pc = reader.offset as u32;
+                let offset = reader.read_u8()? as u32;
                 GoTo8 {
                     offset: pc.checked_add(offset).unwrap(),
                 }
             }
             239 => {
-                let offset = reader.read_u16()? as u32;
                 let pc = reader.offset as u32;
+                let offset = reader.read_u16()? as u32;
                 GoTo16 {
                     offset: pc.checked_add(offset).unwrap(),
                 }
