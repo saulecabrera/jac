@@ -1,5 +1,5 @@
-use anyhow::{anyhow, Result};
-use jac_translate::{quickpars::Opcode, FunctionTranslation, Translation, TranslationBuilder};
+use anyhow::{Result, anyhow};
+use jac_translate::{FunctionTranslation, Translation, TranslationBuilder, quickpars::Opcode};
 use std::fmt::Write;
 
 /// Pretty-print QuickJS bytecode.

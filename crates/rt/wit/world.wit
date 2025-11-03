@@ -1,0 +1,11 @@
+package jac:rt@0.1.0;
+
+world jacrt {
+  /// Create a closure.
+  export closure: func(context: u32, name: string, id: u32, argc: u32, data-ptr: u32, data-len: u32) -> u64; 
+  
+  /// These exports are required by the plugin.
+  export compile-src: func(src: list<u8>) -> result<list<u8>, string>;
+  export initialize-runtime: func();
+  export invoke: func(bytecode: list<u8>, function: option<string>);
+}

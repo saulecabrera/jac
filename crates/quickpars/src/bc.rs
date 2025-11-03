@@ -1,6 +1,6 @@
 //! QuickJS bytecode details.
 
-use anyhow::{bail, ensure, Result};
+use anyhow::{Result, bail, ensure};
 
 // QuickJS manages several flavors of bytecode version, depending on what
 // features the engine is compiled with. For the time being we assume `67`, which

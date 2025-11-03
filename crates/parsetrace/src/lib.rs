@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 use jac_translate::{
-    quickpars::{ClosureVarIndex, FuncIndex, LocalIndex},
     Translation, TranslationBuilder,
+    quickpars::{ClosureVarIndex, FuncIndex, LocalIndex},
 };
 use quickpars::Opcode;
 use trace::BytecodeTraceEvent;

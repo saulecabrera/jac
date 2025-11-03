@@ -34,25 +34,12 @@ jobs:
             ${{ runner.os }}-cargo-target-${{ hashFiles('Cargo.toml') }}
             ${{ runner.os }}-cargo-target
 
-  check:
-    name: Check Workspace
+  check-and-test:
+    name: Check & Test
     runs-on: ubuntu-latest
     needs: cache
     steps:
       - uses: actions/checkout@v2
-      - name: cargo check & cargo build
+      - name: Check & Test
         run: |
-          cargo check
-          cargo build
-
-  test:
-    name: Test Workspace
-    runs-on: ubuntu-latest
-    needs: cache
-    steps:
-      - uses: actions/checkout@v2
-      - name: cargo test
-        run: |
-          cargo test
-
-
+	     ./ci.sh

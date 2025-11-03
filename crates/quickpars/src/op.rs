@@ -1,6 +1,6 @@
 use crate::readers::BinaryReader;
 use crate::{AtomIndex, ClosureVarIndex, ConstantPoolIndex, LocalIndex};
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 
 /// A QuickJS operator code.
 #[repr(u8)]
@@ -495,9 +495,9 @@ impl Opcode {
     /// reads an opcode, with immediates from a buffer, and returns the parsed opcode object.
     pub fn from_reader(reader: &mut BinaryReader<'_>) -> Result<(u32, Opcode)> {
         use Opcode::*;
-	// The start of the operator.
+        // The start of the operator.
         let pc = reader.offset as u32;
-	// Reader is advanced 1 byte.
+        // Reader is advanced 1 byte.
         let byte = reader.read_u8()?;
         let op = match byte {
             0 => Invalid,
@@ -957,7 +957,7 @@ impl Opcode {
             234 => SetVarRef3,
             235 => GetLength,
             236 => {
-		let pc = reader.offset as u32;
+                let pc = reader.offset as u32;
                 let offset = reader.read_u8()? as u32;
                 IfFalse8 {
                     offset: pc.checked_add(offset).unwrap(),

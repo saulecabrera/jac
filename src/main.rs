@@ -9,11 +9,7 @@ use std::path::PathBuf;
 mod printer;
 
 #[derive(Debug, Parser)]
-#[command(
-    name = "jac-utils",
-    version,
-    about = "Utils for the development of JAC"
-)]
+#[command(name = "jac", version, about = "AOT style compiler for Javy")]
 struct Cli {
     #[command(subcommand)]
     pub command: Command,

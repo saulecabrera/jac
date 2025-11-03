@@ -1,6 +1,6 @@
 //! Function Builder.
 use anyhow::Result;
-use jac_translate::{quickpars::BinaryReader, FunctionTranslation};
+use jac_translate::{FunctionTranslation, quickpars::BinaryReader};
 use std::collections::{HashMap, HashSet};
 use waffle::{Block, FunctionBody, Local, Signature, Type, Value};
 

@@ -6,7 +6,9 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
-rquickjs = { version = "=0.6.1", features = ["array-buffer", "bindgen"] }
+javy = { workspace = true }
+javy-plugin-api = "4.1.0"
+wit-bindgen = "0.47.0"
 
 [lib]
 name = "jacrt"

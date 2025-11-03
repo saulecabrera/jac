@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use quickpars::Opcode;
 
-use crate::{trace::BytecodeTraceEvent, MatchedFuncInfo, ProfiledOpcodeList};
+use crate::{MatchedFuncInfo, ProfiledOpcodeList, trace::BytecodeTraceEvent};
 
 /// Turns the raw execution trace into a vector of trace events.
 pub(crate) fn generate_trace(raw_execution_trace: &str) -> Vec<BytecodeTraceEvent> {
