@@ -9,6 +9,7 @@ license.workspace = true
 javy = { workspace = true }
 javy-plugin-api = "4.1.0"
 wit-bindgen = "0.47.0"
+anyhow = { workspace = true }
 
 [lib]
 name = "jacrt"

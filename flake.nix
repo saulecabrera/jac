@@ -13,6 +13,7 @@
               llvmPackages_latest.libclang
               clang
               pkg-config
+              wasm-tools
             ];
 
             LIBCLANG_PATH = "${pkgs.llvmPackages_latest.libclang.lib}/lib";

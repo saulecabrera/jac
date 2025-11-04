@@ -588,6 +588,7 @@ dependencies = [
 name = "jacrt"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "javy",
  "javy-plugin-api",
  "wit-bindgen",
